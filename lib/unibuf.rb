@@ -31,6 +31,10 @@ module Unibuf
   module Validators
   end
 
+  # Module for serializers
+  module Serializers
+  end
+
   class << self
     # ===== TEXT FORMAT PARSING (no schema required) =====
 

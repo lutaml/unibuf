@@ -1,36 +1,33 @@
 # frozen_string_literal: true
 
 module Unibuf
-  # Base error class for all Unibuf errors
+  # Base error class
   class Error < StandardError; end
 
-  # Parsing errors
+  # Parse error
   class ParseError < Error; end
-  class SyntaxError < ParseError; end
-  class UnexpectedTokenError < ParseError; end
-  class UnterminatedStringError < ParseError; end
 
-  # Validation errors
+  # Serialization error
+  class SerializationError < Error; end
+
+  # Validation error
   class ValidationError < Error; end
-  class TypeValidationError < ValidationError; end
+
+  # Schema validation error
   class SchemaValidationError < ValidationError; end
-  class ReferenceValidationError < ValidationError; end
-  class RequiredFieldError < ValidationError; end
 
-  # Model errors
-  class ModelError < Error; end
-  class InvalidFieldError < ModelError; end
-  class InvalidValueError < ModelError; end
-  class TypeCoercionError < ModelError; end
+  # Type validation error
+  class TypeValidationError < ValidationError; end
 
-  # File errors
-  class FileError < Error; end
-  class FileNotFoundError < FileError; end
-  class FileReadError < FileError; end
-  class FileWriteError < FileError; end
+  # Invalid value error
+  class InvalidValueError < ValidationError; end
 
-  # CLI errors
-  class CLIError < Error; end
-  class InvalidArgumentError < CLIError; end
-  class CommandExecutionError < CLIError; end
+  # Type coercion error
+  class TypeCoercionError < Error; end
+
+  # File not found error
+  class FileNotFoundError < Error; end
+
+  # Invalid argument error
+  class InvalidArgumentError < Error; end
 end

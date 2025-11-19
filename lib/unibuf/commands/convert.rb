@@ -42,11 +42,23 @@ module Unibuf
                 "Target format required"
         end
 
-        valid_formats = %w[json yaml textproto]
+        valid_formats = %w[json yaml textproto binpb]
         unless valid_formats.include?(target_format)
           raise InvalidArgumentError,
                 "Invalid format '#{target_format}'. " \
                 "Valid formats: #{valid_formats.join(', ')}"
+        end
+
+        # Binary format requires schema
+        if target_format == "binpb" && !schema_file
+          raise InvalidArgumentError,
+                "Binary format requires --schema option"
+        end
+
+        # Binary input requires schema
+        if binary_file?(file) && !schema_file
+          raise InvalidArgumentError,
+                "Binary input requires --schema option"
         end
       end
 
@@ -56,6 +68,8 @@ module Unibuf
           load_from_json(file)
         elsif yaml_file?(file)
           load_from_yaml(file)
+        elsif binary_file?(file)
+          load_from_binary(file)
         else
           Unibuf.parse_file(file)
         end
@@ -73,6 +87,11 @@ module Unibuf
         Unibuf::Models::Message.from_hash(data)
       end
 
+      def load_from_binary(file)
+        schema = load_schema
+        Unibuf.parse_binary_file(file, schema: schema)
+      end
+
       def convert_message(message)
         case target_format
         when "json"
@@ -81,16 +100,45 @@ module Unibuf
           message.to_yaml
         when "textproto"
           message.to_textproto
+        when "binpb"
+          schema = load_schema
+          message.to_binary(schema: schema, message_type: message_type)
         end
       end
 
       def write_output(content)
         if output_file
-          File.write(output_file, content)
+          if target_format == "binpb"
+            File.binwrite(output_file, content)
+          else
+            File.write(output_file, content)
+          end
           puts "Output written to #{output_file}" if verbose?
         else
-          puts content
+          if target_format == "binpb"
+            # Binary output to stdout
+            $stdout.binmode
+            $stdout.write(content)
+          else
+            puts content
+          end
         end
+      end
+
+      def load_schema
+        return @schema if @schema
+
+        unless schema_file
+          raise InvalidArgumentError,
+                "Schema required for binary format"
+        end
+
+        unless File.exist?(schema_file)
+          raise FileNotFoundError,
+                "Schema file not found: #{schema_file}"
+        end
+
+        @schema = Unibuf.parse_schema(schema_file)
       end
 
       def json_file?(file)
@@ -101,12 +149,24 @@ module Unibuf
         file.end_with?(".yaml", ".yml")
       end
 
+      def binary_file?(file)
+        file.end_with?(".binpb", ".bin") || file.end_with?(".pb")
+      end
+
       def target_format
         options[:to]
       end
 
       def output_file
         options[:output]
+      end
+
+      def schema_file
+        options[:schema]
+      end
+
+      def message_type
+        options[:message_type]
       end
 
       def verbose?
