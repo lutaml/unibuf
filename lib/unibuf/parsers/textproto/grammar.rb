@@ -72,7 +72,7 @@ module Unibuf
 
         # Numbers - with optional sign
         rule(:signed_number) do
-          str("-") >> whitespace? >> (float_token | hex_int | oct_int | dec_int)
+          (str("-") >> whitespace? >> (float_token | hex_int | oct_int | dec_int)).as(:negative)
         end
         rule(:unsigned_number) { float_token | hex_int | oct_int | dec_int }
         rule(:number) { signed_number | unsigned_number }

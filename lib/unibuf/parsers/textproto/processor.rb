@@ -60,6 +60,7 @@ module Unibuf
           end
 
           # Process a value (polymorphic)
+          # rubocop:disable Metrics/MethodLength
           def process_value(value)
             return nil unless value
             return value.to_s if value.is_a?(String)
@@ -73,6 +74,14 @@ module Unibuf
             end
 
             return nil unless value.respond_to?(:[])
+
+            # Handle negative numbers
+            if value[:negative]
+              inner_value = process_value(value[:negative])
+              return -inner_value if inner_value.is_a?(Numeric)
+
+              return inner_value
+            end
 
             if value[:string]
               # Single string
@@ -103,6 +112,7 @@ module Unibuf
               value.to_s
             end
           end
+          # rubocop:enable Metrics/MethodLength
 
           # Extract and unescape a string token
           def extract_and_unescape_string(str_token)

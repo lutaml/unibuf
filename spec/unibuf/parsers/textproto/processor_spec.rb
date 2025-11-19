@@ -180,5 +180,84 @@ RSpec.describe Unibuf::Parsers::Textproto::Processor do
       result = described_class.process(ast_tab)
       expect(result["fields"].first["value"]).to include("\t")
     end
+
+    context "with negative numbers" do
+      it "processes negative integer in scalar field" do
+        ast = [
+          {
+            field: {
+              field_name: { identifier: "offset" },
+              field_value: { negative: { integer: "42" } },
+            },
+          },
+        ]
+        result = described_class.process(ast)
+        expect(result["fields"].first["value"]).to eq(-42)
+      end
+
+      it "processes negative float in scalar field" do
+        ast = [
+          {
+            field: {
+              field_name: { identifier: "temperature" },
+              field_value: { negative: { float: "3.14" } },
+            },
+          },
+        ]
+        result = described_class.process(ast)
+        expect(result["fields"].first["value"]).to eq(-3.14)
+      end
+
+      # rubocop:disable RSpec/ExampleLength
+      it "processes negative numbers in map field values" do
+        ast = [
+          {
+            field: {
+              field_name: { identifier: "registry_default_overrides" },
+              field_value: {
+                message: [
+                  {
+                    field: {
+                      field_name: { identifier: "key" },
+                      field_value: { string: '"YTDE"' },
+                    },
+                  },
+                  {
+                    field: {
+                      field_name: { identifier: "value" },
+                      field_value: { negative: { float: "203.0" } },
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        ]
+        result = described_class.process(ast)
+        nested = result["fields"].first["value"]
+        value_field = nested["fields"].find { |f| f["name"] == "value" }
+        expect(value_field["value"]).to eq(-203.0)
+      end
+      # rubocop:enable RSpec/ExampleLength
+
+      it "processes negative numbers in lists" do
+        ast = [
+          {
+            field: {
+              field_name: { identifier: "coordinates" },
+              field_value: {
+                list: [
+                  { negative: { float: "1.5" } },
+                  { negative: { integer: "42" } },
+                  { float: "3.14" },
+                ],
+              },
+            },
+          },
+        ]
+        result = described_class.process(ast)
+        expect(result["fields"].first["value"]).to eq([-1.5, -42, 3.14])
+      end
+    end
   end
 end
