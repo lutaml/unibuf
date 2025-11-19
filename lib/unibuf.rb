@@ -21,6 +21,10 @@ module Unibuf
     # FlatBuffers schema parser
     module Flatbuffers
     end
+
+    # Cap'n Proto schema parser
+    module Capnproto
+    end
   end
 
   # Module for all models
@@ -127,6 +131,22 @@ module Unibuf
       Parsers::Flatbuffers::BinaryParser.new(schema).parse(content)
     end
 
+    # ===== CAP'N PROTO =====
+
+    # Parse Cap'n Proto schema file
+    # @param path [String] Path to .capnp file
+    # @return [Models::Capnproto::Schema] Cap'n Proto schema
+    def parse_capnproto_schema(path)
+      require_relative "unibuf/parsers/capnproto/grammar"
+      require_relative "unibuf/parsers/capnproto/processor"
+
+      grammar = Parsers::Capnproto::Grammar.new
+      content = File.read(path)
+      ast = grammar.parse(content)
+      Parsers::Capnproto::Processor.process(ast)
+    end
+    alias parse_capnp parse_capnproto_schema
+
     # ===== AUTO-DETECTION (convenience methods) =====
 
     # Auto-detect format and parse
@@ -162,6 +182,9 @@ module Unibuf
       when ".fbs"
         raise ArgumentError,
               ".fbs files are schemas, use parse_flatbuffers_schema()"
+      when ".capnp"
+        raise ArgumentError,
+              ".capnp files are schemas, use parse_capnproto_schema()"
       when ".pb"
         # Ambiguous extension - try to detect
         detect_and_parse_pb(path, schema)

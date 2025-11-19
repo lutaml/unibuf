@@ -1,0 +1,369 @@
+= Protocol Buffers Text Format (Textproto) Support
+
+:toc:
+:toclevels: 3
+
+== Purpose
+
+Unibuf provides complete support for Protocol Buffers text format (textproto), a human-readable representation of protobuf messages.
+
+Features:
+
+* Parse `.txtpb` and `.textproto` files
+* No schema required for parsing (schema recommended for validation)
+* Support all Protocol Buffers field types
+* Nested messages and repeated fields
+* Comments and whitespace handling
+* Round-trip serialization
+* Rich domain models
+
+== Text Format Overview
+
+Text format (textproto) is:
+
+Human-readable::
+Easy to read and edit by humans
+
+Self-documenting::
+Field names make structure obvious
+
+Configuration-friendly::
+Ideal for configuration files
+
+Debug-friendly::
+Easy to inspect message contents
+
+== Parsing Text Format
+
+=== Basic parsing
+
+[source,ruby]
+----
+require "unibuf"
+
+# Parse from file
+message = Unibuf.parse_textproto_file("config.txtpb")  # <1>
+
+# Parse from string
+text = <<~TEXTPROTO
+  name: "Alice"
+  id: 123
+TEXTPROTO
+
+message = Unibuf.parse_textproto(text)  # <2>
+
+# Access fields
+puts message.find_field("name").value  # => "Alice"  # <3>
+puts message.find_field("id").value    # => 123  # <4>
+----
+<1> Parse from file
+<2> Parse from string
+<3> Access string field
+<4> Access integer field
+
+=== Parsing nested messages
+
+[source,ruby]
+----
+text = <<~TEXTPROTO
+  name: "Alice"
+  address {
+    street: "123 Main St"
+    city: "Springfield"
+  }
+TEXTPROTO
+
+message = Unibuf.parse_textproto(text)  # <1>
+
+# Access nested message
+address = message.find_field("address").value  # <2>
+puts address.find_field("street").value  # => "123 Main St"  # <3>
+----
+<1> Parse text with nested message
+<2> Get nested message field
+<3> Access field in nested message
+
+=== Parsing repeated fields
+
+[source,ruby]
+----
+text = <<~TEXTPROTO
+  name: "Alice"
+  tags: "important"
+  tags: "customer"
+  tags: "vip"
+TEXTPROTO
+
+message = Unibuf.parse_textproto(text)  # <1>
+
+# Access repeated field
+tags = message.find_fields("tags")  # <2>
+tag_values = tags.map(&:value)  # => ["important", "customer", "vip"]  # <3>
+----
+<1> Parse text with repeated fields
+<2> Find all fields with name "tags"
+<3> Extract values
+
+== Text Format Syntax
+
+=== Field types
+
+String fields::
++
+[source,textproto]
+----
+name: "Alice"
+description: "A person"
+----
+
+Integer fields::
++
+[source,textproto]
+----
+id: 123
+count: -42
+large: 9223372036854775807
+----
+
+Float fields::
++
+[source,textproto]
+----
+price: 19.99
+ratio: 0.5
+scientific: 1.23e-4
+----
+
+Boolean fields::
++
+[source,textproto]
+----
+enabled: true
+active: false
+----
+
+=== Nested messages
+
+[source,textproto]
+----
+person {
+  name: "Alice"
+  address {
+    street: "123 Main St"
+    city: "Springfield"
+  }
+}
+----
+
+=== Repeated fields
+
+[source,textproto]
+----
+# Multiple values for same field
+tags: "tag1"
+tags: "tag2"
+tags: "tag3"
+
+# Or as nested messages
+people {
+  name: "Alice"
+}
+people {
+  name: "Bob"
+}
+----
+
+=== Comments
+
+[source,textproto]
+----
+# Line comment
+name: "Alice"  # Inline comment
+
+/*
+ * Block comment
+ */
+id: 123
+----
+
+== Domain Models
+
+=== Message model
+
+[source,ruby]
+----
+message = Unibuf.parse_textproto_file("data.txtpb")
+
+# Classification
+message.nested?           # Has nested messages?
+message.scalar_only?      # Only scalar values?
+message.repeated_fields?  # Has repeated fields?
+
+# Queries
+message.find_field("name")        # Find single field
+message.find_fields("tags")       # Find all with name
+message.field_names               # All field names
+message.repeated_field_names      # Repeated field names
+
+# Traversal
+message.traverse_depth_first { |field| puts field.name }
+message.traverse_breadth_first { |field| puts field.value }
+message.depth  # Maximum nesting depth
+----
+
+=== Field model
+
+[source,ruby]
+----
+field = message.find_field("address")
+
+# Properties
+field.name       # Field name
+field.value      # Field value
+field.repeated?  # Is repeated field?
+
+# Type classification
+field.scalar?    # Scalar value?
+field.message?   # Nested message?
+field.list?      # List value?
+field.map?       # Map value?
+----
+
+=== Value types
+
+ScalarValue::
+Strings, integers, floats, booleans
+
+MessageValue::
+Nested messages
+
+ListValue::
+Repeated fields
+
+MapValue::
+Key-value maps
+
+== Serialization
+
+=== Serializing to text format
+
+[source,ruby]
+----
+# Parse message
+message = Unibuf.parse_textproto_file("input.txtpb")  # <1>
+
+# Modify if needed
+# ... modifications ...
+
+# Serialize back to text format
+output = message.to_textproto  # <2>
+
+# Write to file
+File.write("output.txtpb", output)  # <3>
+
+# Verify round-trip
+reparsed = Unibuf.parse_textproto(output)  # <4>
+puts message == reparsed  # => true  # <5>
+----
+<1> Parse original
+<2> Serialize to text
+<3> Write output
+<4> Parse again
+<5> Verify equivalence
+
+== With Schema Validation
+
+=== Parsing with validation
+
+[source,ruby]
+----
+# Load schema
+schema = Unibuf.parse_schema("schema.proto")  # <1>
+
+# Parse text format
+message = Unibuf.parse_textproto_file("data.txtpb")  # <2>
+
+# Validate
+validator = Unibuf::Validators::SchemaValidator.new(schema)  # <3>
+validator.validate!(message, "Person")  # <4>
+----
+<1> Load schema
+<2> Parse text format
+<3> Create validator
+<4> Validate against schema
+
+== Testing
+
+=== Test coverage
+
+Text format implementation includes:
+
+Grammar tests (60+ tests)::
+All syntax elements, strings, numbers, booleans, nested messages
+
+Parser tests (40+ tests)::
+Field parsing, message building, error handling
+
+Integration tests (40+ tests)::
+Real-world Protocol Buffer files (Google Fonts metadata)
+
+Serialization tests (20+ tests)::
+Round-trip verification, formatting
+
+**Total: 160+ tests, 100% passing**
+
+=== Running tests
+
+[source,shell]
+----
+# Run textproto tests
+bundle exec rspec spec/unibuf/parsers/textproto/
+
+# Run specific test
+bundle exec rspec spec/unibuf/parsers/textproto/grammar_spec.rb
+----
+
+== Real-World Examples
+
+=== Google Fonts metadata
+
+Unibuf successfully parses Google Fonts METADATA.pb files:
+
+[source,ruby]
+----
+# Parse Google Font metadata
+message = Unibuf.parse_file("METADATA.pb")
+
+# Access font information
+name = message.find_field("name")&.value
+category = message.find_field("category")&.value
+designers = message.find_fields("designer").map(&:value)
+
+puts "Font: #{name}"
+puts "Category: #{category}"
+puts "Designers: #{designers.join(', ')}"
+----
+
+== References
+
+Protocol Buffers text format::
+https://protobuf.dev/reference/protobuf/textformat-spec/
+
+Proto3 language guide::
+https://protobuf.dev/programming-guides/proto3/
+
+Encoding specification::
+https://protobuf.dev/programming-guides/encoding/
+
+== Support
+
+For issues, questions, or contributions related to Protocol Buffers text format:
+
+* GitHub Issues: https://github.com/lutaml/unibuf/issues
+* Documentation: https://github.com/lutaml/unibuf/tree/main/docs
+
+== Copyright and License
+
+Copyright https://www.ribose.com[Ribose Inc.]
+
+Licensed under the 3-clause BSD License.

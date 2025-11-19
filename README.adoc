@@ -1,4 +1,4 @@
-= Unibuf: Universal Protocol Buffer & FlatBuffer Parser
+= Unibuf: Universal Buffer Format Parser
 
 image:https://img.shields.io/gem/v/unibuf.svg[Gem Version,link=https://rubygems.org/gems/unibuf]
 image:https://img.shields.io/github/license/lutaml/unibuf.svg[License,link=https://github.com/lutaml/unibuf/blob/main/LICENSE]
@@ -6,12 +6,12 @@ image:https://github.com/lutaml/unibuf/actions/workflows/rake.yml/badge.svg[Buil
 
 == Purpose
 
-Unibuf is a pure Ruby gem for parsing and manipulating Protocol Buffers and
-FlatBuffers in both text and binary formats with schema-driven validation.
+Unibuf is a pure Ruby gem for parsing and manipulating multiple serialization
+formats including Protocol Buffers, FlatBuffers, and Cap'n Proto.
 
 It provides fully object-oriented, specification-compliant parsers with rich
-domain models, comprehensive schema validation, wire format encoding/decoding,
-and complete round-trip serialization support for both formats.
+domain models, comprehensive schema validation, binary format encoding/decoding,
+and complete round-trip serialization support.
 
 Key features:
 
@@ -27,13 +27,21 @@ Key features:
 ** Parse binary format (`.fb`)
 ** Serialize to binary format (`.fb`)
 
+* Cap'n Proto
+** Parse schemas (`.capnp`)
+** Parse binary format with segment management
+** Serialize to binary format with pointer encoding
+** Support for structs, enums, interfaces (RPC)
+** Generic types (List<T>)
+** Unions and annotations
+
 * Serialization and validation
-** Complete round-trip serialization for both formats
+** Complete round-trip serialization for all formats
 ** Schema-driven validation and deserialization
 
 * Developer usage
-** Rich domain models with 50+ behavioral classes
-** Complete CLI toolkit for both formats
+** Rich domain models with 60+ behavioral classes
+** Complete CLI toolkit for all formats
 ** Pure Ruby - no C/C++ dependencies
 
 == Installation
@@ -61,57 +69,194 @@ gem install unibuf
 
 == Features
 
-=== Protocol Buffers
-
+* <<protocol-buffers,Protocol Buffers support>>
+* <<flatbuffers,FlatBuffers support>>
+* <<capnproto,Cap'n Proto support>>
+* <<schema-required-design,Schema-required design>>
 * <<parsing-textproto,Parsing text format>>
 * <<parsing-binary,Parsing binary format>>
-* <<serializing-binary,Serializing to binary format>>
 * <<schema-validation,Schema-based validation>>
 * <<wire-format,Wire format support>>
 * <<round-trip-serialization,Round-trip serialization>>
-
-=== FlatBuffers
-
-* <<flatbuffers-schema,FlatBuffers schema parsing>>
-* <<flatbuffers-binary-parsing,FlatBuffers binary parsing>>
-* <<flatbuffers-binary-serialization,FlatBuffers binary serialization>>
-
-=== Common
-
 * <<rich-domain-models,Rich domain models>>
 * <<cli-tools,Command-line tools>>
 
-[[schema-required-design]]
-== Schema-required design
+[[protocol-buffers]]
+== Protocol Buffers
 
 === General
 
-Unibuf follows Protocol Buffers' and FlatBuffers' schema-driven architecture.
-The schema (`.proto` or `.fbs` file) defines the message structure and is
-REQUIRED for binary parsing and serialization.
+Full support for Protocol Buffers (protobuf) including text format parsing,
+binary format parsing/serialization, and Proto3 schema parsing.
 
-This design ensures type safety and enables proper deserialization of binary
-formats.
+See link:docs/PROTOBUF.adoc[PROTOBUF.adoc] for detailed documentation.
 
-=== Why schema is required
 
-The schema defines:
-- Message types and their fields
-- Field types and numbers
-- Field wire types for binary encoding
-- Repeated and optional fields
-- Nested message structures
+=== Parsing Protocol Buffers text format
 
-Binary formats cannot be parsed without a schema because they only store field
-numbers or offsets, not field names or types.
+[source,ruby]
+----
+require "unibuf"
+
+# Load schema (recommended for validation)
+schema = Unibuf.parse_schema("schema.proto")  # <1>
+
+# Parse text format file
+message = Unibuf.parse_textproto_file("data.txtpb")  # <2>
+
+# Validate against schema
+validator = Unibuf::Validators::SchemaValidator.new(schema)  # <3>
+validator.validate!(message, "MessageType")  # <4>
+----
+<1> Load Proto3 schema from .proto file
+<2> Parse Protocol Buffers text format
+<3> Create validator with schema
+<4> Validate message against schema
+
+=== Parsing Protocol Buffers binary format
+
+[source,ruby]
+----
+require "unibuf"
+
+# 1. Load schema (REQUIRED for binary)
+schema = Unibuf.parse_schema("schema.proto")  # <1>
+
+# 2. Parse binary Protocol Buffer file
+message = Unibuf.parse_binary_file("data.binpb", schema: schema)  # <2>
+
+# 3. Access fields normally
+puts message.find_field("name").value  # <3>
+----
+<1> Schema is mandatory for binary parsing
+<2> Parse binary file with schema
+<3> Access fields like text format
+
+[[flatbuffers]]
+== FlatBuffers
+
+=== General
+
+Complete support for Google FlatBuffers including schema parsing (`.fbs` files)
+and binary format parsing/serialization.
+
+See link:docs/FLATBUFFERS.adoc[FLATBUFFERS.adoc] for detailed documentation.
+
+=== Parsing FlatBuffers schema
+
+[source,ruby]
+----
+require "unibuf"
+
+# Parse FlatBuffers schema
+schema = Unibuf.parse_flatbuffers_schema("schema.fbs")  # <1>
+
+# Access schema structure
+table = schema.find_table("Monster")  # <2>
+table.fields.each { |f| puts "#{f.name}: #{f.type}" }  # <3>
+----
+<1> Parse `.fbs` schema file
+<2> Find table definition
+<3> Iterate through fields
+
+=== Parsing FlatBuffers binary format
+
+[source,ruby]
+----
+# Parse binary FlatBuffer
+data = Unibuf.parse_flatbuffers_binary(binary_data, schema: schema)  # <1>
+
+# Access data
+puts data["name"]  # <2>
+puts data["hp"]  # <3>
+----
+<1> Parse binary with schema
+<2> Access string field
+<3> Access numeric field
+
+
+[[capnproto]]
+== Cap'n Proto
+
+=== General
+
+Complete support for Cap'n Proto including schema parsing (`.capnp` files) and
+binary format parsing/serialization with segment management and pointer
+encoding.
+
+See link:docs/CAPNPROTO.adoc[CAPNPROTO.adoc] for detailed documentation.
+
+=== Parsing Cap'n Proto schema
+
+[source,ruby]
+----
+require "unibuf"
+
+# Parse Cap'n Proto schema
+schema = Unibuf.parse_capnproto_schema("addressbook.capnp")  # <1>
+
+# Access schema structure
+person = schema.find_struct("Person")  # <2>
+person.fields.each { |f| puts "#{f.name} @#{f.ordinal} :#{f.type}" }  # <3>
+
+# Access interfaces (RPC)
+calc = schema.find_interface("Calculator")  # <4>
+calc.methods.each { |m| puts "#{m.name} @#{m.ordinal}" }  # <5>
+----
+<1> Parse `.capnp` schema file
+<2> Find struct definition
+<3> Iterate through fields with ordinals
+<4> Find interface definition (RPC)
+<5> List RPC methods
+
+=== Parsing Cap'n Proto binary format
+
+[source,ruby]
+----
+# Parse binary Cap'n Proto data
+parser = Unibuf::Parsers::Capnproto::BinaryParser.new(schema)  # <1>
+data = parser.parse(binary_data, root_type: "Person")  # <2>
+
+# Access data
+puts data[:name]  # <3>
+puts data[:email]  # <4>
+----
+<1> Create parser with schema
+<2> Parse binary with root type
+<3> Access text field
+<4> Access another field
+
+=== Serializing Cap'n Proto binary format
+
+[source,ruby]
+----
+# Serialize to binary
+serializer = Unibuf::Serializers::Capnproto::BinarySerializer.new(schema)  # <1>
+binary = serializer.serialize(
+  { id: 1, name: "Alice", email: "alice@example.com" },  # <2>
+  root_type: "Person"  # <3>
+)
+
+# Write to file
+File.binwrite("output.capnp.bin", binary)  # <4>
+----
+<1> Create serializer with schema
+<2> Provide data as hash
+<3> Specify root struct type
+<4> Write binary output
+
+
 
 [[parsing-textproto]]
-== Parsing Protocol Buffers text format
+== Protocol Buffers text format
 
 === General
 
 Parse human-readable Protocol Buffer text format files following the
 https://protobuf.dev/reference/protobuf/textformat-spec/[official specification].
+
+See link:docs/TXTPROTO.adoc[TXTPROTO.adoc] for detailed documentation.
+
 
 === Parsing text format
 
@@ -192,51 +337,78 @@ Variable-length data: string, bytes, embedded messages, packed repeated fields
 32-bit (Type 5)::
 Fixed 4-byte values: fixed32, sfixed32, float
 
-[[serializing-binary]]
-== Serializing to Protocol Buffers binary format
+
+[[wire-format]]
+== Protocol Buffers wire format
 
 === General
 
-Serialize Protocol Buffer messages to binary wire format for efficient storage
-and transmission.
+Unibuf implements complete Protocol Buffers wire format decoding according to
+the official specification.
 
-=== Serializing to binary
+=== Wire format features
+
+Varint decoding::
+Efficiently decode variable-length integers used for most numeric types
+
+ZigZag encoding::
+Proper handling of signed integers (sint32, sint64) with zigzag decoding
+
+Fixed-width types::
+Decode 32-bit and 64-bit fixed-width values (fixed32, fixed64, float, double)
+
+Length-delimited::
+Parse strings, bytes, and embedded messages with length prefixes
+
+Schema-driven::
+Use schema to determine field types and deserialize correctly
+
+=== Example wire format parsing
 
 [source,ruby]
 ----
-require "unibuf"
-
-# Load schema (REQUIRED)
+# Schema defines the structure
 schema = Unibuf.parse_schema("schema.proto")
 
-# Parse or create message
-message = Unibuf.parse_textproto_file("data.txtpb")
+# Binary data uses wire format encoding
+binary_data = File.binread("data.binpb")
 
-# Serialize to binary
-binary_data = message.to_binary(schema: schema, message_type: "Person")
+# Parser uses schema to decode wire format
+message = Unibuf.parse_binary(binary_data, schema: schema)
 
-# Write to file
-File.binwrite("data.binpb", binary_data)
-
-# Verify round-trip
-reparsed = Unibuf.parse_binary(binary_data, schema: schema)
-puts message == reparsed  # => true
+# Access decoded fields
+message.field_names  # => ["name", "id", "enabled"]
+message.find_field("id").value  # => Properly decoded integer
 ----
 
-=== Using CLI
 
-[source,shell]
-----
-# Text to binary
-unibuf convert data.txtpb --schema schema.proto --to binpb -o data.binpb
 
-# Binary to text
-unibuf convert data.binpb --schema schema.proto --to txtpb -o data.txtpb
+[[schema-required-design]]
+== Schema-required design
 
-# Round-trip verification
-unibuf convert data.txtpb --schema schema.proto --to binpb | \
-  unibuf convert - --schema schema.proto --to txtpb
-----
+=== General
+
+Unibuf follows Protocol Buffers' and FlatBuffers' schema-driven architecture.
+The schema (`.proto` or `.fbs` file) defines the message structure and is
+REQUIRED for binary parsing and serialization.
+
+This design ensures type safety and enables proper deserialization of binary
+formats.
+
+=== Why schema is required
+
+The schema defines:
+
+* Message/struct types and their fields
+* Field types, numbers, and ordinals
+* Field wire types for binary encoding
+* Repeated and optional fields
+* Nested message/struct structures
+
+Binary Protocol Buffers, FlatBuffers, and Cap'n Proto cannot be parsed without a
+schema because the binary formats only store field identifiers, not field names
+or complete type information.
+
 
 [[schema-validation]]
 == Schema-based validation
@@ -272,58 +444,15 @@ end
 <5> Validation passed
 <6> Show errors if any
 
-[[wire-format]]
-== Wire format support
 
-=== General
-
-Unibuf implements complete Protocol Buffers wire format encoding and decoding
-according to the official specification.
-
-=== Wire format features
-
-Varint encoding/decoding::
-Efficiently encode and decode variable-length integers used for most numeric types
-
-ZigZag encoding/decoding::
-Proper handling of signed integers (sint32, sint64) with zigzag encoding
-
-Fixed-width types::
-Encode and decode 32-bit and 64-bit fixed-width values (fixed32, fixed64, float, double)
-
-Length-delimited::
-Parse and generate strings, bytes, and embedded messages with length prefixes
-
-Schema-driven::
-Use schema to determine field types and serialize/deserialize correctly
-
-=== Example wire format operations
-
-[source,ruby]
-----
-# Schema defines the structure
-schema = Unibuf.parse_schema("schema.proto")
-
-# Encode to wire format
-message = Unibuf::Models::Message.new("fields" => [
-  { "name" => "id", "value" => 12345 },
-  { "name" => "name", "value" => "Alice" }
-])
-binary_data = message.to_binary(schema: schema, message_type: "Person")
-
-# Decode wire format
-parsed = Unibuf.parse_binary(binary_data, schema: schema)
-parsed.find_field("id").value  # => 12345
-----
 
 [[round-trip-serialization]]
 == Round-trip serialization
 
 === General
 
-Unibuf supports complete round-trip serialization for both text and binary
-formats, allowing you to parse, modify, and serialize back while preserving
-semantic equivalence.
+Unibuf supports complete round-trip serialization for text format, allowing you
+to parse, modify, and serialize back while preserving semantic equivalence.
 
 === Serializing to textproto format
 
@@ -347,171 +476,6 @@ puts message == reparsed  # => true <5>
 <4> Parse the serialized output
 <5> Verify semantic equivalence
 
-=== Text to binary to text round-trip
-
-[source,ruby]
-----
-schema = Unibuf.parse_schema("schema.proto")
-
-# Parse text
-original = Unibuf.parse_textproto_file("data.txtpb")
-
-# Convert to binary
-binary = original.to_binary(schema: schema, message_type: "Person")
-
-# Convert back to text
-reparsed = Unibuf.parse_binary(binary, schema: schema)
-text_output = reparsed.to_textproto
-
-# Semantic equivalence preserved
-puts original == reparsed  # => true
-----
-
-
-[[flatbuffers-schema]]
-== FlatBuffers schema parsing
-
-=== General
-
-Parse FlatBuffers schema files (`.fbs`) to analyze table structures, field
-definitions, and type hierarchies.
-
-=== Parsing FlatBuffers schema
-
-[source,ruby]
-----
-require "unibuf"
-
-# Parse FlatBuffers schema
-schema = Unibuf.parse_flatbuffers_schema("monster.fbs")
-
-# Access schema information
-puts schema.namespace       # => "MyGame"
-puts schema.root_type       # => "Monster"
-puts schema.table_names     # => ["Monster", "Weapon"]
-
-# Inspect table definition
-table = schema.find_table("Monster")
-puts table.fields.map(&:name)  # => ["hp", "name", "inventory"]
-----
-
-=== Using CLI
-
-[source,shell]
-----
-# Inspect FlatBuffers schema
-unibuf schema monster.fbs
-
-# Output as JSON
-unibuf schema monster.fbs --format json
-
-# Output as YAML
-unibuf schema monster.fbs --format yaml
-----
-
-[[flatbuffers-binary-parsing]]
-== FlatBuffers binary parsing
-
-=== General
-
-Parse binary FlatBuffers data (`.fb` files) using offset-based format with
-vtable lookups.
-
-FlatBuffers use a different binary format than Protocol Buffers, optimized for
-zero-copy access.
-
-=== Parsing FlatBuffers binary
-
-[source,ruby]
-----
-require "unibuf"
-
-# 1. Load FlatBuffers schema (REQUIRED)
-schema = Unibuf.parse_flatbuffers_schema("monster.fbs")
-
-# 2. Parse binary FlatBuffers file
-parser = Unibuf::Parsers::Flatbuffers::BinaryParser.new(schema)
-data = parser.parse_file("monster.fb")
-
-# 3. Access fields as hash
-puts data["name"]      # => "Orc"
-puts data["hp"]        # => 100
-puts data["friendly"]  # => false
-----
-
-=== FlatBuffers binary format features
-
-Offset-based access::
-Efficient field access via offsets without full deserialization
-
-vtable support::
-Virtual tables enable backwards compatibility and optional fields
-
-All scalar types::
-byte, ubyte, short, ushort, int, uint, long, ulong, float, double, bool
-
-Strings::
-Length-prefixed UTF-8 strings with efficient access
-
-Vectors::
-Arrays of any type with length prefix
-
-Structs::
-Fixed-size inline objects for performance
-
-Tables::
-Variable-size objects with vtable indirection
-
-[[flatbuffers-binary-serialization]]
-== FlatBuffers binary serialization
-
-=== General
-
-Serialize data to FlatBuffers binary format for efficient zero-copy access.
-
-=== Serializing to FlatBuffers
-
-[source,ruby]
-----
-require "unibuf"
-
-# Load schema (REQUIRED)
-schema = Unibuf.parse_flatbuffers_schema("monster.fbs")
-
-# Prepare data
-data = {
-  "name" => "Dragon",
-  "hp" => 500,
-  "friendly" => false
-}
-
-# Serialize to binary
-serializer = Unibuf::Serializers::Flatbuffers::BinarySerializer.new(schema)
-binary_data = serializer.serialize(data)
-
-# Write to file
-File.binwrite("monster.fb", binary_data)
-
-# Verify round-trip
-parser = Unibuf::Parsers::Flatbuffers::BinaryParser.new(schema)
-reparsed = parser.parse(binary_data)
-puts reparsed == data  # => true
-----
-
-=== Supported types
-
-All FlatBuffers scalar types::
-byte, ubyte, short, ushort, int, uint, long, ulong, float, double, bool
-
-Strings::
-UTF-8 strings with null termination
-
-Tables::
-Variable-size objects with vtable generation
-
-Enums::
-Integer-based enumerations
-
 [[rich-domain-models]]
 == Rich domain models
 
@@ -519,8 +483,7 @@ Integer-based enumerations
 
 Unibuf provides rich domain models with comprehensive behavior.
 
-Over 50 classes provide extensive functionality following object-oriented
-principles.
+Over 60 classes provide extensive functionality following object-oriented principles.
 
 === Message model
 
@@ -558,19 +521,18 @@ message.validation_errors  # Get error list
 
 === General
 
-Complete CLI toolkit supporting Protocol Buffers and FlatBuffers in both text
-and binary formats.
+Complete CLI toolkit supporting both text and binary Protocol Buffer formats.
 
-Schema is REQUIRED for binary operations.
+Schema is REQUIRED for proper message type identification.
 
 === Parse command
 
 [source,shell]
 ----
-# Parse Protocol Buffers text format
+# Parse text format
 unibuf parse data.txtpb --schema schema.proto --format json
 
-# Parse Protocol Buffers binary format
+# Parse binary format
 unibuf parse data.binpb --schema schema.proto --format json
 
 # Auto-detect format
@@ -584,8 +546,10 @@ unibuf parse data.binpb --schema schema.proto --message-type FamilyProto
 
 [source,shell]
 ----
-# Validate Protocol Buffers
+# Validate text format
 unibuf validate data.txtpb --schema schema.proto
+
+# Validate binary format
 unibuf validate data.binpb --schema schema.proto
 
 # Specify message type
@@ -596,16 +560,13 @@ unibuf validate data.pb --schema schema.proto --message-type MessageType
 
 [source,shell]
 ----
-# Protocol Buffers: Binary to JSON
+# Binary to JSON
 unibuf convert data.binpb --schema schema.proto --to json
 
-# Protocol Buffers: Binary to text
+# Binary to text
 unibuf convert data.binpb --schema schema.proto --to txtpb
 
-# Protocol Buffers: Text to binary
-unibuf convert data.txtpb --schema schema.proto --to binpb -o data.binpb
-
-# Protocol Buffers: Text to JSON
+# Text to JSON
 unibuf convert data.txtpb --schema schema.proto --to json
 ----
 
@@ -613,15 +574,11 @@ unibuf convert data.txtpb --schema schema.proto --to json
 
 [source,shell]
 ----
-# Inspect Protocol Buffers schema
+# Inspect schema
 unibuf schema schema.proto
-
-# Inspect FlatBuffers schema
-unibuf schema monster.fbs
 
 # Output as JSON
 unibuf schema schema.proto --format json
-unibuf schema monster.fbs --format json
 ----
 
 == Architecture
@@ -632,83 +589,55 @@ unibuf schema monster.fbs --format json
 ----
 Unibuf
 ├── Parsers
-│   ├── Textproto              Protocol Buffers text parser
-│   │   ├── Grammar            Parslet grammar
-│   │   ├── Processor          AST transformation
-│   │   └── Parser             High-level API
-│   ├── Proto3                 Protocol Buffers schema parser
-│   │   ├── Grammar            Proto3 grammar
-│   │   └── Processor          Schema builder
-│   ├── Binary                 Protocol Buffers binary parser
+│   ├── Textproto          Text format parser
+│   │   ├── Grammar        Parslet grammar
+│   │   ├── Processor      AST transformation
+│   │   └── Parser         High-level API
+│   ├── Proto3             Schema parser
+│   │   ├── Grammar        Proto3 grammar
+│   │   ├── Processor      Schema builder
+│   │   └── Parser         Schema API
+│   ├── Binary             Binary Protocol Buffers
 │   │   └── WireFormatParser   Wire format decoder
-│   └── Flatbuffers            FlatBuffers parser
-│       ├── Grammar            FlatBuffers schema grammar
-│       ├── Processor          FlatBuffers schema builder
-│       └── BinaryParser       FlatBuffers binary decoder
+│   ├── Flatbuffers        FlatBuffers parser
+│   │   ├── Grammar        FBS grammar
+│   │   ├── Processor      Schema builder
+│   │   └── BinaryParser   Binary format
+│   └── Capnproto          Cap'n Proto parser
+│       ├── Grammar        Cap'n Proto grammar
+│       ├── Processor      Schema builder
+│       ├── SegmentReader  Segment management
+│       ├── PointerDecoder Pointer decoding
+│       ├── StructReader   Struct reading
+│       ├── ListReader     List reading
+│       └── BinaryParser   Binary format
 ├── Serializers
-│   ├── BinarySerializer       Protocol Buffers binary encoder
-│   └── Flatbuffers
-│       └── BinarySerializer   FlatBuffers binary encoder
+│   ├── BinarySerializer   Protocol Buffers binary
+│   ├── Flatbuffers        FlatBuffers binary
+│   │   └── BinarySerializer
+│   └── Capnproto          Cap'n Proto binary
+│       ├── SegmentBuilder Segment allocation
+│       ├── PointerEncoder Pointer encoding
+│       ├── StructWriter   Struct writing
+│       ├── ListWriter     List writing
+│       └── BinarySerializer
 ├── Models
-│   ├── Message                Protocol Buffer message
-│   ├── Field                  Message field
-│   ├── Schema                 Proto3 schema
-│   ├── MessageDefinition      Message type definition
-│   ├── FieldDefinition        Field specification
-│   ├── EnumDefinition         Enum type definition
-│   ├── Flatbuffers            FlatBuffers models (6 classes)
-│   │   ├── Schema             FlatBuffers schema
-│   │   ├── TableDefinition    Table definition
-│   │   ├── StructDefinition   Struct definition
-│   │   ├── FieldDefinition    Field specification
-│   │   ├── EnumDefinition     Enum definition
-│   │   └── UnionDefinition    Union definition
-│   └── Values                 Value type hierarchy (5 classes)
+│   ├── Message            Protocol Buffer message
+│   ├── Field              Message field
+│   ├── Schema             Proto3 schema
+│   ├── MessageDefinition  Message type definition
+│   ├── FieldDefinition    Field specification
+│   ├── EnumDefinition     Enum type definition
+│   ├── Flatbuffers        FlatBuffers models (6 classes)
+│   ├── Capnproto          Cap'n Proto models (7 classes)
+│   └── Values             Value type hierarchy (5 classes)
 ├── Validators
-│   ├── TypeValidator          Type and range validation
-│   └── SchemaValidator        Schema-based validation
+│   ├── TypeValidator      Type and range validation
+│   └── SchemaValidator    Schema-based validation
 └── CLI
-    └── Commands               parse, validate, convert, schema
+    └── Commands           parse, validate, convert, schema
 ----
 
-=== Design principles
-
-Object-Oriented::
-50+ rich classes with extensive behavior.
-No anemic data structures.
-
-MECE::
-Mutually exclusive, collectively exhaustive classifications.
-Complete type hierarchies.
-
-Separation of Concerns::
-Clean layer separation: Grammar, Processor, Models, Validators, Serializers, CLI.
-
-Open/Closed::
-Extensible for new formats without modifying core.
-
-Schema-Driven::
-Schema-required for binary, recommended for text.
-Proper Protocol Buffer & FlatBuffers architecture.
-
-Pure Ruby::
-Zero C/C++ dependencies for maximum portability.
-
-== Real-World Validation
-
-Curated test suite with diverse Protocol Buffer features:
-
-.Test fixtures
-[example]
-====
-- robotoflex: Multi-axis variable font
-- mavenpro: Static font
-- opensans: Popular font variants
-- playfair: Optical size axis
-- wavefont: Custom axes
-
-Validation: 100% parse success, 100% round-trip accuracy
-====
 
 == Development
 
@@ -719,8 +648,6 @@ Validation: 100% parse success, 100% round-trip accuracy
 bundle exec rspec
 ----
 
-Result: **362 examples, 0 failures, 80.9% coverage**
-
 === Code style
 
 [source,shell]
@@ -728,13 +655,17 @@ Result: **362 examples, 0 failures, 80.9% coverage**
 bundle exec rubocop -A
 ----
 
-== Future enhancements
+== Roadmap
 
-- Performance optimizations (streaming, lazy loading)
-- Cap'n Proto support
+=== Future work
+
+==== Additional features
+
+- gRPC support (Protocol Buffers RPC)
+- Cap'n Proto RPC implementation
+- Performance optimizations
+- Additional Protocol Buffer features
 - Schema evolution tools
-- Code generation from schemas
-- Additional validation rules
 
 == Contributing
 
@@ -745,3 +676,4 @@ Bug reports and pull requests are welcome at https://github.com/lutaml/unibuf.
 Copyright https://www.ribose.com[Ribose Inc.]
 
 Licensed under the 3-clause BSD License.
+

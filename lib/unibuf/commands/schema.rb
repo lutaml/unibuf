@@ -43,6 +43,8 @@ module Unibuf
           Unibuf.parse_schema(file)
         when ".fbs"
           Unibuf.parse_flatbuffers_schema(file)
+        when ".capnp"
+          Unibuf.parse_capnproto_schema(file)
         else
           raise InvalidArgumentError,
                 "Unknown schema format: #{File.extname(file)}"
@@ -77,20 +79,75 @@ module Unibuf
 
       def format_text(schema)
         lines = []
-        lines << "Package: #{schema.package}" if schema.package
-        lines << "Syntax: #{schema.syntax}"
-        lines << ""
-        lines << "Messages (#{schema.messages.size}):"
-        schema.messages.each do |msg|
-          lines << "  #{msg.name} (#{msg.fields.size} fields)"
-        end
-        if schema.enums.any?
+
+        # Handle different schema types
+        if schema.respond_to?(:package)
+          # Proto3 schema
+          lines << "Package: #{schema.package}" if schema.package
+          lines << "Syntax: #{schema.syntax}"
           lines << ""
-          lines << "Enums (#{schema.enums.size}):"
-          schema.enums.each do |enum|
-            lines << "  #{enum.name} (#{enum.values.size} values)"
+          lines << "Messages (#{schema.messages.size}):"
+          schema.messages.each do |msg|
+            lines << "  #{msg.name} (#{msg.fields.size} fields)"
+          end
+          if schema.enums.any?
+            lines << ""
+            lines << "Enums (#{schema.enums.size}):"
+            schema.enums.each do |enum|
+              lines << "  #{enum.name} (#{enum.values.size} values)"
+            end
+          end
+        elsif schema.respond_to?(:file_id)
+          # Cap'n Proto schema
+          lines << "File ID: #{schema.file_id}" if schema.file_id
+          lines << ""
+          if schema.structs.any?
+            lines << "Structs (#{schema.structs.size}):"
+            schema.structs.each do |struct|
+              lines << "  #{struct.name} (#{struct.fields.size} fields)"
+            end
+          end
+          if schema.enums.any?
+            lines << ""
+            lines << "Enums (#{schema.enums.size}):"
+            schema.enums.each do |enum|
+              lines << "  #{enum.name} (#{enum.values.size} values)"
+            end
+          end
+          if schema.interfaces.any?
+            lines << ""
+            lines << "Interfaces (#{schema.interfaces.size}):"
+            schema.interfaces.each do |interface|
+              lines << "  #{interface.name} (#{interface.methods.size} methods)"
+            end
+          end
+        else
+          # FlatBuffers schema
+          lines << "Namespace: #{schema.namespace}" if schema.namespace
+          lines << "Root Type: #{schema.root_type}" if schema.root_type
+          lines << ""
+          if schema.tables.any?
+            lines << "Tables (#{schema.tables.size}):"
+            schema.tables.each do |table|
+              lines << "  #{table.name} (#{table.fields.size} fields)"
+            end
+          end
+          if schema.structs.any?
+            lines << ""
+            lines << "Structs (#{schema.structs.size}):"
+            schema.structs.each do |struct|
+              lines << "  #{struct.name} (#{struct.fields.size} fields)"
+            end
+          end
+          if schema.enums.any?
+            lines << ""
+            lines << "Enums (#{schema.enums.size}):"
+            schema.enums.each do |enum|
+              lines << "  #{enum.name} (#{enum.values.size} values)"
+            end
           end
         end
+
         lines.join("\n")
       end
 

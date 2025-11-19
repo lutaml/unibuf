@@ -1,0 +1,515 @@
+= Protocol Buffers Support in Unibuf
+
+:toc:
+:toclevels: 3
+
+== Purpose
+
+Unibuf provides complete support for Protocol Buffers (protobuf), Google's language-neutral, platform-neutral extensible mechanism for serializing structured data.
+
+Features:
+
+* Parse Protocol Buffers text format (`.txtpb`, `.textproto`)
+* Parse Protocol Buffers binary format (`.binpb`)
+* Serialize to binary format (`.binpb`)
+* Parse Proto3 schemas (`.proto`)
+* Schema-driven validation
+* Complete wire format support
+* Round-trip serialization
+
+== Protocol Buffers Overview
+
+Protocol Buffers are designed for:
+
+Efficiency::
+Compact binary format, smaller than XML/JSON
+
+Performance::
+Fast serialization and deserialization
+
+Language neutral::
+Works across multiple programming languages
+
+Schema evolution::
+Backward and forward compatibility
+
+== Text Format (Textproto)
+
+=== General
+
+Protocol Buffers text format is a human-readable representation of protobuf messages, useful for configuration files and debugging.
+
+See link:TXTPROTO.adoc[TXTPROTO.adoc] for detailed text format documentation.
+
+=== Parsing text format
+
+[source,ruby]
+----
+require "unibuf"
+
+# Parse text format file
+message = Unibuf.parse_textproto_file("data.txtpb")  # <1>
+
+# Access fields
+name_field = message.find_field("name")  # <2>
+puts name_field.value  # <3>
+
+# List all fields
+message.field_names.each do |name|
+  field = message.find_field(name)  # <4>
+  puts "#{name}: #{field.value}"  # <5>
+end
+----
+<1> Parse `.txtpb` or `.textproto` file
+<2> Find field by name
+<3> Get field value
+<4> Find each field
+<5> Display field and value
+
+=== Text format structure
+
+.Example textproto file
+[source,textproto]
+----
+# Comment line
+name: "Alice"
+id: 123
+email: "alice@example.com"
+
+# Nested message
+address {
+  street: "123 Main St"
+  city: "Springfield"
+  zipcode: "12345"
+}
+
+# Repeated field
+tags: "important"
+tags: "customer"
+tags: "vip"
+----
+
+== Binary Format
+
+=== General
+
+Protocol Buffers binary format uses wire types and variable-length encoding for efficient data serialization.
+
+=== Parsing binary format
+
+[source,ruby]
+----
+require "unibuf"
+
+# 1. Load schema (REQUIRED for binary)
+schema = Unibuf.parse_schema("schema.proto")  # <1>
+
+# 2. Parse binary file
+message = Unibuf.parse_binary_file("data.binpb", schema: schema)  # <2>
+
+# 3. Access fields
+puts message.find_field("name").value  # <3>
+----
+<1> Schema is mandatory for binary parsing
+<2> Parse binary with schema
+<3> Access field values
+
+=== Serializing to binary
+
+[source,ruby]
+----
+# Create serializer with schema
+serializer = Unibuf::Serializers::BinarySerializer.new(schema)  # <1>
+
+# Serialize message
+binary_data = serializer.serialize(message)  # <2>
+
+# Write to file
+File.binwrite("output.binpb", binary_data)  # <3>
+----
+<1> Create binary serializer
+<2> Serialize to binary
+<3> Write binary output
+
+=== Wire format encoding
+
+Protocol Buffers uses 6 wire types:
+
+Varint (0)::
+Variable-length integers for int32, int64, uint32, uint64, sint32, sint64, bool, enum
+
+64-bit (1)::
+Fixed 8-byte values for fixed64, sfixed64, double
+
+Length-delimited (2)::
+Variable-length data for string, bytes, embedded messages, packed repeated fields
+
+Start group (3)::
+Deprecated (not supported)
+
+End group (4)::
+Deprecated (not supported)
+
+32-bit (5)::
+Fixed 4-byte values for fixed32, sfixed32, float
+
+== Schema Parsing
+
+=== General
+
+Proto3 schemas define message structures, field types, and validation rules.
+
+=== Parsing a schema
+
+[source,ruby]
+----
+require "unibuf"
+
+# Parse Proto3 schema
+schema = Unibuf.parse_schema("schema.proto")  # <1>
+
+# Access schema information
+puts "Package: #{schema.package}"  # <2>
+puts "Syntax: #{schema.syntax}"  # <3>
+puts "Messages: #{schema.message_names.join(', ')}"  # <4>
+----
+<1> Parse `.proto` schema file
+<2> Get package name
+<3> Get syntax version
+<4> List all message types
+
+=== Schema structure
+
+.Example Proto3 schema
+[source,proto]
+----
+syntax = "proto3";
+
+package example;
+
+message Person {
+  string name = 1;
+  int32 id = 2;
+  string email = 3;
+  repeated string phones = 4;
+
+  enum PhoneType {
+    MOBILE = 0;
+    HOME = 1;
+    WORK = 2;
+  }
+}
+
+message AddressBook {
+  repeated Person people = 1;
+}
+----
+
+=== Accessing messages
+
+[source,ruby]
+----
+# Find message by name
+person_def = schema.find_message("Person")  # <1>
+
+# Access fields
+person_def.fields.each do |field|
+  puts "#{field.name} (#{field.number}): #{field.type}"  # <2>
+end
+
+# Check field properties
+name_field = person_def.find_field("name")  # <3>
+puts "Repeated? #{name_field.repeated?}"  # <4>
+puts "Optional? #{name_field.optional?}"  # <5>
+----
+<1> Find message definition
+<2> Print field info
+<3> Find specific field
+<4> Check if repeated
+<5> Check if optional
+
+=== Accessing enums
+
+[source,ruby]
+----
+# Find enum by name
+phone_type = schema.find_enum("PhoneType")  # <1>
+
+# Access values
+phone_type.values.each do |name, number|
+  puts "#{name} = #{number}"  # <2>
+end
+----
+<1> Find enum definition
+<2> Iterate through values
+
+== Schema Validation
+
+=== General
+
+Validate messages against their schemas to ensure type safety and structural correctness.
+
+=== Validating messages
+
+[source,ruby]
+----
+# Load schema
+schema = Unibuf.parse_schema("schema.proto")  # <1>
+
+# Parse message
+message = Unibuf.parse_textproto_file("data.txtpb")  # <2>
+
+# Create validator
+validator = Unibuf::Validators::SchemaValidator.new(schema)  # <3>
+
+# Validate
+errors = validator.validate(message, "Person")  # <4>
+
+if errors.empty?
+  puts "✓ Valid message"  # <5>
+else
+  puts "✗ Validation errors:"  # <6>
+  errors.each { |e| puts "  - #{e}" }  # <7>
+end
+----
+<1> Parse schema
+<2> Parse message
+<3> Create validator
+<4> Validate message
+<5> Success case
+<6> Failure case
+<7> Show errors
+
+=== Validation checks
+
+The validator performs:
+
+Type checking::
+Verify field values match declared types
+
+Required fields::
+Ensure required fields are present (Proto2)
+
+Field numbers::
+Validate field numbers match schema
+
+Nested messages::
+Recursively validate embedded messages
+
+Enum values::
+Check enum values are valid
+
+== Wire Format Details
+
+=== Varint encoding
+
+Variable-length encoding for integers:
+
+[source]
+----
+Value    Binary              Bytes
+0        0000 0000          1 byte
+127      0111 1111          1 byte
+128      1000 0000 0000 0001    2 bytes
+16383    1111 1111 0111 1111    2 bytes
+----
+
+=== ZigZag encoding
+
+For signed integers (sint32, sint64):
+
+[source]
+----
+Signed   ZigZag   Binary
+0        0        0
+-1       1        1
+1        2        10
+-2       3        11
+----
+
+=== Field encoding
+
+Each field encoded as:
+
+[source]
+----
+Tag (varint) = (field_number << 3) | wire_type
+Value (format depends on wire_type)
+----
+
+== Architecture
+
+=== Text format parser
+
+Grammar (`lib/unibuf/parsers/textproto/grammar.rb`)::
+Parslet grammar for textproto syntax
+
+Processor (`lib/unibuf/parsers/textproto/processor.rb`)::
+Transform AST to domain models
+
+Parser (`lib/unibuf/parsers/textproto/parser.rb`)::
+High-level parsing API
+
+=== Binary format parser
+
+WireFormatParser (`lib/unibuf/parsers/binary/wire_format_parser.rb`)::
+Wire format decoder with schema-driven deserialization
+
+=== Schema parser
+
+Grammar (`lib/unibuf/parsers/proto3/grammar.rb`)::
+Parslet grammar for Proto3 syntax
+
+Processor (`lib/unibuf/parsers/proto3/processor.rb`)::
+Build schema models from AST
+
+=== Binary serializer
+
+BinarySerializer (`lib/unibuf/serializers/binary_serializer.rb`)::
+Wire format encoder with proper varint and zigzag encoding
+
+== Command-Line Usage
+
+=== Schema command
+
+[source,shell]
+----
+# Inspect Proto3 schema
+unibuf schema schema.proto  # <1>
+
+# Output as JSON
+unibuf schema schema.proto --format json  # <2>
+----
+<1> Display schema structure
+<2> JSON output format
+
+=== Parse command
+
+[source,shell]
+----
+# Parse text format
+unibuf parse data.txtpb --schema schema.proto --format json  # <1>
+
+# Parse binary format
+unibuf parse data.binpb --schema schema.proto --format json  # <2>
+
+# Specify message type
+unibuf parse data.pb --schema schema.proto --message-type Person  # <3>
+----
+<1> Parse textproto
+<2> Parse binary
+<3> With explicit message type
+
+=== Validate command
+
+[source,shell]
+----
+# Validate text format
+unibuf validate data.txtpb --schema schema.proto  # <1>
+
+# Validate binary format
+unibuf validate data.binpb --schema schema.proto  # <2>
+----
+<1> Validate textproto
+<2> Validate binary
+
+=== Convert command
+
+[source,shell]
+----
+# Binary to JSON
+unibuf convert data.binpb --schema schema.proto --to json  # <1>
+
+# Binary to text
+unibuf convert data.binpb --schema schema.proto --to txtpb  # <2>
+
+# Text to binary
+unibuf convert data.txtpb --schema schema.proto --to binpb  # <3>
+----
+<1> Convert to JSON
+<2> Convert to textproto
+<3> Convert to binary
+
+== Testing
+
+=== Test coverage
+
+Protocol Buffers implementation includes:
+
+Text format tests (140+ tests)::
+All syntax elements, nested messages, repeated fields
+
+Binary format tests (80+ tests)::
+All wire types, varint, zigzag, fixed-width values
+
+Schema tests (50+ tests)::
+Proto3 syntax, messages, enums, validation
+
+Serialization tests (40+ tests)::
+Round-trip verification, wire format encoding
+
+**Total: 316 tests, 100% passing**
+
+=== Running tests
+
+[source,shell]
+----
+# Run all Protocol Buffers tests
+bundle exec rspec spec/unibuf/parsers/textproto/ spec/unibuf/parsers/binary/ spec/unibuf/parsers/proto3/
+
+# Run specific test suite
+bundle exec rspec spec/unibuf/parsers/textproto/integration_spec.rb
+----
+
+== Implementation Notes
+
+=== Design decisions
+
+bindata for wire format::
+Uses bindata gem for efficient varint reading and wire type handling
+
+Schema-required for binary::
+Binary format only stores field numbers, requires schema for type information
+
+Text format standalone::
+Text format can be parsed without schema (but validation recommended)
+
+=== Supported features
+
+✅ Proto3 syntax
+✅ All scalar types (int32, int64, uint32, uint64, sint32, sint64, fixed32, fixed64, sfixed32, sfixed64, float, double, bool, string, bytes)
+✅ Messages and nested messages
+✅ Enums
+✅ Repeated fields
+✅ Map fields
+✅ Oneof fields
+✅ Comments (line and block)
+✅ Package declaration
+✅ Import statements
+
+== References
+
+Protocol Buffers official documentation::
+https://protobuf.dev/
+
+Proto3 language guide::
+https://protobuf.dev/programming-guides/proto3/
+
+Encoding specification::
+https://protobuf.dev/programming-guides/encoding/
+
+Text format specification::
+https://protobuf.dev/reference/protobuf/textformat-spec/
+
+== Support
+
+For issues, questions, or contributions related to Protocol Buffers support:
+
+* GitHub Issues: https://github.com/lutaml/unibuf/issues
+* Documentation: https://github.com/lutaml/unibuf/tree/main/docs
+
+== Copyright and License
+
+Copyright https://www.ribose.com[Ribose Inc.]
+
+Licensed under the 3-clause BSD License.
