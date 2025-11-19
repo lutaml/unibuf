@@ -1,0 +1,490 @@
+= Unibuf: Universal Protocol Buffer & FlatBuffer Parser
+
+image:https://img.shields.io/gem/v/unibuf.svg[Gem Version,link=https://rubygems.org/gems/unibuf]
+image:https://img.shields.io/github/license/lutaml/unibuf.svg[License,link=https://github.com/lutaml/unibuf/blob/main/LICENSE]
+image:https://github.com/lutaml/unibuf/actions/workflows/rake.yml/badge.svg[Build Status,link=https://github.com/lutaml/unibuf/actions/workflows/rake.yml]
+
+== Purpose
+
+Unibuf is a pure Ruby gem for parsing and manipulating Protocol Buffers with
+schema-driven validation.
+
+It provides a fully object-oriented, specification-compliant parser with rich
+domain models, comprehensive schema validation, and complete round-trip
+serialization support.
+
+Key features:
+
+* Parse Protocol Buffers text format (`.txtpb`, `.textproto`)
+* Parse Proto3 schemas (`.proto`) for validation
+* Schema-driven validation of Protocol Buffer messages
+* Round-trip serialization with 100% accuracy
+* Rich domain models with 45+ behavioral classes
+* Complete CLI toolkit with schema-required commands
+* Specification-compliant implementation
+* Zero external binary dependencies
+
+== Installation
+
+Add this line to your application's Gemfile:
+
+[source,ruby]
+----
+gem "unibuf"
+----
+
+And then execute:
+
+[source,shell]
+----
+bundle install
+----
+
+Or install it yourself as:
+
+[source,shell]
+----
+gem install unibuf
+----
+
+== Features
+
+* <<schema-required-design,Schema-Required Design>>
+* <<parsing-textproto,Parsing Protocol Buffers Text Format>>
+* <<schema-validation,Schema-Based Validation>>
+* <<round-trip-serialization,Round-trip Serialization>>
+* <<rich-domain-models,Rich Domain Models>>
+* <<cli-tools,Command-Line Tools>>
+
+[[schema-required-design]]
+== Schema-Required Design
+
+=== General
+
+Unibuf follows Protocol Buffers' schema-driven architecture. The schema
+(`.proto` file) defines the message structure and is REQUIRED for proper parsing
+and validation.
+
+This design ensures type safety and enables both text and binary format support.
+
+=== Why schema is required
+
+The schema defines:
+- Message types and their fields
+- Field types and numbers
+- Repeated and optional fields
+- Nested message structures
+- Enum values
+
+Without the schema, you cannot properly interpret Protocol Buffer data.
+
+[[parsing-textproto]]
+== Parsing Protocol Buffers Text Format
+
+=== General
+
+Unibuf parses Protocol Buffers text format files following the
+https://protobuf.dev/reference/protobuf/textformat-spec/[official specification].
+
+The parser handles all Protocol Buffer text format features including nested
+messages, repeated fields, lists, maps, multi-line strings, comments, and all
+numeric types.
+
+=== Loading schema first
+
+[source,ruby]
+----
+require "unibuf"
+
+# 1. Load the schema (defines message structure)
+schema = Unibuf.parse_schema("schema.proto")  # <1>
+
+# 2. Parse text format file
+message = Unibuf.parse_textproto_file("data.txtpb")  # <2>
+
+# 3. Validate against schema
+validator = Unibuf::Validators::SchemaValidator.new(schema)  # <3>
+validator.validate!(message, "MessageType")  # <4>
+----
+<1> Load Proto3 schema from .proto file
+<2> Parse Protocol Buffers text format
+<3> Create validator with schema
+<4> Validate message against schema
+
+=== Parsing from string
+
+[source,ruby]
+----
+content = <<~PROTO
+  name: "Example"
+  version: 1
+  enabled: true
+PROTO
+
+message = Unibuf.parse_textproto(content)  # <1>
+
+name_field = message.find_field("name")  # <2>
+puts name_field.value  # => "Example" # <3>
+----
+<1> Parse Protocol Buffers text format from string
+<2> Find a specific field by name
+<3> Access the field value
+
+[[schema-validation]]
+== Schema-based validation
+
+=== General
+
+Unibuf validates Protocol Buffer messages against their Proto3 schemas, ensuring type safety and structural correctness.
+
+The SchemaValidator checks field types, validates nested messages, and ensures all fields conform to their schema definitions.
+
+=== Validating against schema
+
+[source,ruby]
+----
+# Load schema
+schema = Unibuf.parse_schema("metadata.proto")  # <1>
+
+# Parse message
+message = Unibuf.parse_textproto_file("metadata.pb")  # <2>
+
+# Validate
+validator = Unibuf::Validators::SchemaValidator.new(schema)  # <3>
+errors = validator.validate(message, "FamilyProto")  # <4>
+
+if errors.empty?
+  puts "✓ Valid!"  # <5>
+else
+  errors.each { |e| puts "  - #{e}" }  # <6>
+end
+----
+<1> Parse the Proto3 schema
+<2> Parse the Protocol Buffer message
+<3> Create validator with schema
+<4> Validate message as FamilyProto type
+<5> Validation passed
+<6> Show validation errors if any
+
+=== Schema structure
+
+[source,ruby]
+----
+schema = Unibuf.parse_schema("schema.proto")
+
+puts schema.package  # => "google.fonts" <1>
+puts schema.message_names  # => ["FamilyProto", "FontProto", ...] <2>
+
+# Find message definition
+msg_def = schema.find_message("FamilyProto")  # <3>
+puts msg_def.field_names  # => ["name", "designer", ...] <4>
+
+# Find field definition
+field_def = msg_def.find_field("name")  # <5>
+puts field_def.type  # => "string" <6>
+puts field_def.number  # => 1 <7>
+----
+<1> Get package name from schema
+<2> List all message types
+<3> Find specific message definition
+<4> Get field names for message
+<5> Find specific field definition
+<6> Get field type
+<7> Get field number
+
+[[round-trip-serialization]]
+== Round-trip Serialization
+
+=== General
+
+Unibuf supports complete round-trip serialization, allowing you to parse a Protocol Buffer text format file, modify it, and serialize it back while preserving semantic equivalence.
+
+The round-trip success rate on curated test files is 100%.
+
+=== Serializing to textproto format
+
+[source,ruby]
+----
+message = Unibuf.parse_textproto_file("input.pb")  # <1>
+
+textproto = message.to_textproto  # <2>
+
+File.write("output.txtpb", textproto)  # <3>
+
+reparsed = Unibuf.parse_textproto(textproto)  # <4>
+puts message == reparsed  # => true <5>
+----
+<1> Parse the original file
+<2> Serialize to Protocol Buffers text format
+<3> Write to file
+<4> Parse the serialized output
+<5> Verify semantic equivalence
+
+[[rich-domain-models]]
+== Rich Domain Models
+
+=== General
+
+Unibuf provides rich domain models with comprehensive behavior.
+
+The models follow object-oriented principles with proper encapsulation,
+polymorphism, and separation of concerns.
+
+=== Message model capabilities
+
+[source,ruby]
+----
+message = Unibuf.parse_textproto_file("metadata.pb")
+
+# Classification methods (MECE)
+message.nested?            # => true if has nested messages
+message.scalar_only?       # => true if only scalar fields
+message.maps?              # => true if contains map fields (renamed from has_maps?)
+message.repeated_fields?   # => true if has repeated fields (renamed from has_repeated_fields?)
+message.empty?             # => true if no fields
+
+# Query methods
+message.find_field("name")         # => Field object or nil
+message.find_fields("subsets")     # => Array of all "subsets" fields
+message.field_names                # => ["name", "version", ...]
+message.field_count                # => 12
+message.repeated_field_names       # => ["subsets", "fonts"] (renamed from repeated_fields)
+message.map_fields                 # => Array of map fields
+message.nested_messages            # => Array of nested messages
+
+# Traversal methods
+message.traverse_depth_first { |field| ... }  # Depth-first traversal
+message.traverse_breadth_first { |field| ... }  # Breadth-first traversal
+message.depth  # => Maximum nesting depth
+
+# Validation
+message.valid?  # => true/false
+message.validate!  # => raises if invalid
+message.validation_errors  # => Array of error messages
+----
+
+=== Field model capabilities
+
+[source,ruby]
+----
+field = message.find_field("name")
+
+# Type queries (MECE)
+field.scalar_field?    # => true for scalar types
+field.message_field?   # => true for nested messages
+field.map_field?       # => true for map entries
+field.list_field?      # => true for arrays
+
+# Value type detection
+field.string_value?    # => true for strings
+field.integer_value?   # => true for integers
+field.float_value?     # => true for floats
+field.boolean_value?   # => true for booleans
+----
+
+[[cli-tools]]
+== Command-line tools
+
+=== General
+
+Unibuf provides a complete CLI toolkit following Thor patterns.
+
+All commands require a schema (`.proto` file) as Protocol Buffers are
+schema-driven by design.
+
+=== Parse command
+
+[source,shell]
+----
+# Parse text format to JSON (schema required)
+unibuf parse metadata.pb --schema schema.proto --format json
+
+# Parse with specific message type
+unibuf parse metadata.pb --schema schema.proto --message-type FamilyProto
+
+# Parse to YAML
+unibuf parse metadata.pb --schema schema.proto --format yaml -o output.yml
+
+# Verbose mode
+unibuf parse metadata.pb --schema schema.proto --verbose
+----
+
+=== Validate command
+
+[source,shell]
+----
+# Validate against schema
+unibuf validate metadata.pb --schema schema.proto
+
+# Validate specific message type
+unibuf validate metadata.pb --schema schema.proto --message-type FamilyProto
+
+# Strict validation
+unibuf validate metadata.pb --schema schema.proto --strict --verbose
+----
+
+=== Convert command
+
+[source,shell]
+----
+# Convert to JSON
+unibuf convert metadata.pb --schema schema.proto --to json -o output.json
+
+# Convert to YAML
+unibuf convert metadata.pb --schema schema.proto --to yaml
+
+# Normalize (convert to txtpb)
+unibuf convert metadata.pb --schema schema.proto --to txtpb -o normalized.pb
+----
+
+=== Schema command
+
+[source,shell]
+----
+# Inspect schema structure
+unibuf schema schema.proto
+
+# Output schema as JSON
+unibuf schema schema.proto --format json
+
+# Save schema structure
+unibuf schema schema.proto --format yaml -o schema.yml
+----
+
+== Architecture
+
+=== Component hierarchy
+
+[source]
+----
+Unibuf
+├── Parsers
+│   ├── Textproto          Text format parser
+│   │   ├── Grammar        Parslet grammar rules
+│   │   ├── Processor      AST → Hash transformation
+│   │   └── Parser         High-level API
+│   ├── Proto3             Schema parser
+│   │   ├── Grammar        Proto3 grammar rules
+│   │   ├── Processor      AST → Schema models
+│   │   └── Parser         High-level schema API
+│   ├── Binary             Binary Protocol Buffer parser (stub)
+│   │   └── WireFormatParser   Binary parser (requires bindata)
+│   └── Flatbuffers        FlatBuffers parser (future)
+├── Models
+│   ├── Message            Protocol Buffer message
+│   ├── Field              Message field
+│   ├── Schema             Proto3 schema
+│   ├── MessageDefinition  Message type definition
+│   ├── FieldDefinition    Field specification
+│   ├── EnumDefinition     Enum type definition
+│   └── Values             Value type hierarchy
+│       ├── BaseValue      Abstract base
+│       ├── ScalarValue    Primitives
+│       ├── MessageValue   Nested messages
+│       ├── ListValue      Arrays
+│       └── MapValue       Key-value pairs
+├── Validators
+│   ├── TypeValidator      Type and range validation
+│   └── SchemaValidator    Schema-based validation
+└── CLI
+    ├── Parse              Parse command
+    ├── Validate           Validate command
+    ├── Convert            Convert command
+    └── Schema             Schema inspection command
+----
+
+
+== Supported Protocol Buffer features
+
+The parser supports all Protocol Buffers text format features according to the
+official specification:
+
+Scalar Fields::
+`name: "value"` - Field with string value
+
+Message Fields::
+`fonts { name: "Roboto" }` - Nested message block
+
+Repeated Fields::
+Multiple occurrences of same field name
+
+Lists::
+`tags: ["tag1", "tag2", "tag3"]` - Array syntax
+
+Maps::
+`mapping { key: "k" value: "v" }` - Map entries
+
+Multi-line Strings::
+`text: "line1" "line2"` - String concatenation
+
+Numeric Types::
+Integers, floats, octal, hexadecimal, negative numbers
+
+Comments::
+`#` (shell-style) and `//` (C++-style) comments
+
+Escape Sequences::
+`\n`, `\t`, `\r`, `\"`, `\\`, and all standard escapes
+
+
+== Development
+
+=== Running tests
+
+[source,shell]
+----
+# Run all tests
+bundle exec rspec
+
+# Run with coverage report
+bundle exec rspec --format documentation
+
+# View coverage
+open coverage/index.html
+----
+
+=== Code style
+
+[source,shell]
+----
+# Check code style
+bundle exec rubocop
+
+# Auto-fix style issues
+bundle exec rubocop -A
+----
+
+== Roadmap
+
+=== Current Version (v0.1.0)
+
+- ✅ Protocol Buffer text format parsing
+- ✅ Proto3 schema parsing
+- ✅ Schema-based validation
+- ✅ Complete CLI toolkit
+
+=== Future versions
+
+==== v0.2.0: Binary Protocol Buffers
+
+- Binary wire format parsing
+- Schema-driven binary deserialization
+- Binary/text conversion
+
+==== v0.3.0: FlatBuffers
+
+- FlatBuffers schema parsing
+- FlatBuffers binary parsing
+- Unified interface for all formats
+
+== Contributing
+
+Bug reports and pull requests are welcome on GitHub at https://github.com/lutaml/unibuf.
+
+== Copyright and license
+
+Copyright Ribose.
+
+The gem is available as open source under the terms of the Ribose 3-clause BSD
+License.
+
