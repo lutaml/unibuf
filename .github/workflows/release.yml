@@ -4,7 +4,7 @@ name: release
 
 permissions:
   contents: write
-  package: write
+  packages: write
 
 on:
   workflow_dispatch:
@@ -21,7 +21,7 @@ on:
 
 jobs:
   release:
-    uses: relaton/support/.github/workflows/release.yml@main
+    uses: metanorma/ci/.github/workflows/rubygems-release.yml@main
     with:
       next_version: ${{ github.event.inputs.next_version }}
     secrets:
