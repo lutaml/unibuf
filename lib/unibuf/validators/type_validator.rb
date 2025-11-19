@@ -21,7 +21,7 @@ module Unibuf
         float: [Float, Integer],
         double: [Float, Integer],
         bool: [TrueClass, FalseClass],
-        bytes: [String],
+        bytes: [String]
       }.freeze
 
       class << self
@@ -46,10 +46,7 @@ module Unibuf
           end
 
           # Additional range validation for numeric types
-          if numeric_type?(expected_type)
-            validate_numeric_range(field,
-                                   expected_type)
-          end
+          validate_numeric_range(field, expected_type) if numeric_type?(expected_type)
 
           true
         end
@@ -61,7 +58,7 @@ module Unibuf
         def validate_message(message, schema = {})
           errors = []
 
-          message.fields_array.each do |field|
+          Array(message.fields).each do |field|
             next unless schema.key?(field.name)
 
             expected_type = schema[field.name]
@@ -77,14 +74,12 @@ module Unibuf
 
         # Check if a type is numeric
         def numeric_type?(type)
-          %i[int32 int64 uint32 uint64 sint32 sint64 fixed32 fixed64 sfixed32
-             sfixed64 float double].include?(type)
+          %i[int32 int64 uint32 uint64 sint32 sint64 fixed32 fixed64 sfixed32 sfixed64 float double].include?(type)
         end
 
         # Check if a type is signed
         def signed_type?(type)
-          %i[int32 int64 sint32 sint64 sfixed32 sfixed64 float
-             double].include?(type)
+          %i[int32 int64 sint32 sint64 sfixed32 sfixed64 float double].include?(type)
         end
 
         # Check if a type is unsigned
@@ -100,18 +95,18 @@ module Unibuf
 
           case expected_type
           when :int32, :sint32, :sfixed32
-            validate_range(field, value, -2**31, (2**31) - 1)
+            validate_range(field, value, -2**31, 2**31 - 1)
           when :int64, :sint64, :sfixed64
-            validate_range(field, value, -2**63, (2**63) - 1)
+            validate_range(field, value, -2**63, 2**63 - 1)
           when :uint32, :fixed32
-            validate_range(field, value, 0, (2**32) - 1)
+            validate_range(field, value, 0, 2**32 - 1)
           when :uint64, :fixed64
-            validate_range(field, value, 0, (2**64) - 1)
+            validate_range(field, value, 0, 2**64 - 1)
           end
         end
 
         def validate_range(field, value, min, max)
-          return if value.between?(min, max)
+          return if value >= min && value <= max
 
           raise TypeValidationError,
                 "Field '#{field.name}' value #{value} out of range [#{min}, #{max}]"
