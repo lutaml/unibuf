@@ -1,0 +1,430 @@
+= FlatBuffers Support in Unibuf
+
+== Overview
+
+Unibuf provides complete FlatBuffers support including schema parsing, binary format reading, and binary format writing.
+
+All features are implemented in pure Ruby with no C/C++ dependencies.
+
+== Features
+
+* Parse FlatBuffers schemas (`.fbs` files)
+* Read binary FlatBuffers data (`.fb` files)
+* Write binary FlatBuffers data
+* Complete round-trip support
+* All scalar types supported
+* Tables, structs, enums, unions
+* Vectors and strings
+
+== FlatBuffers Schema Parsing
+
+=== Basic usage
+
+[source,ruby]
+----
+require "unibuf"
+
+# Parse FlatBuffers schema
+schema = Unibuf.parse_flatbuffers_schema("monster.fbs")
+
+# Access schema metadata
+puts schema.namespace       # => "MyGame.Sample"
+puts schema.root_type       # => "Monster"
+puts schema.file_identifier # => "MONS"
+
+# List all tables
+schema.table_names  # => ["Monster", "Weapon", "Vec3"]
+
+# List all enums
+schema.enum_names   # => ["Color", "Equipment"]
+----
+
+=== Inspecting tables
+
+[source,ruby]
+----
+# Get table definition
+table = schema.find_table("Monster")
+
+puts table.name  # => "Monster"
+
+# Inspect fields
+table.fields.each do |field|
+  puts "#{field.name}: #{field.type}"
+  puts "  Default: #{field.default_value}" if field.default_value
+  puts "  Deprecated" if field.deprecated?
+  puts "  Required" if field.required?
+end
+
+# Check table properties
+table.has_vectors?       # => true if any vector fields
+table.has_nested_tables? # => true if nested tables
+----
+
+=== Schema constructs
+
+Tables::
+Variable-size objects with vtable indirection.
+Support optional fields and versioning.
+
+Structs::
+Fixed-size objects stored inline.
+More efficient but less flexible than tables.
+
+Enums::
+Integer-based enumerations with optional type specification.
+
+Unions::
+Discriminated unions representing choice between table types.
+
+Vectors::
+Arrays of any type (scalars, strings, or tables).
+
+== FlatBuffers Binary Parsing
+
+=== Basic parsing
+
+[source,ruby]
+----
+require "unibuf"
+
+# 1. Load schema (REQUIRED)
+schema = Unibuf.parse_flatbuffers_schema("monster.fbs")
+
+# 2. Create parser
+parser = Unibuf::Parsers::Flatbuffers::BinaryParser.new(schema)
+
+# 3. Parse binary file
+data = parser.parse_file("monster.fb")
+
+# 4. Access fields
+puts data["name"]      # => "Orc"
+puts data["hp"]        # => 150
+puts data["inventory"] # => [1, 2, 3, 4, 5]
+----
+
+=== Parsing from binary string
+
+[source,ruby]
+----
+# Read binary data
+binary_data = File.binread("monster.fb")
+
+# Parse
+schema = Unibuf.parse_flatbuffers_schema("monster.fbs")
+parser = Unibuf::Parsers::Flatbuffers::BinaryParser.new(schema)
+data = parser.parse(binary_data)
+----
+
+=== Nested tables
+
+[source,ruby]
+----
+# Schema with nested tables:
+# table Vec3 { x: float; y: float; z: float; }
+# table Monster { pos: Vec3; name: string; }
+
+data = parser.parse_file("monster.fb")
+
+# Access nested data
+position = data["pos"]
+puts position["x"]  # => 1.0
+puts position["y"]  # => 2.0
+puts position["z"]  # => 3.0
+----
+
+=== Binary format details
+
+FlatBuffers binary format uses:
+
+vtables::
+Virtual tables store field offsets for backwards compatibility
+
+Offset-based::
+All references use offsets from current position
+
+Little-endian::
+All numeric values in little-endian byte order
+
+Root object::
+File starts with offset to root table
+
+Zero-copy::
+Design enables reading without deserialization (not yet exposed in API)
+
+== FlatBuffers Binary Serialization
+
+=== Basic serialization
+
+[source,ruby]
+----
+require "unibuf"
+
+# 1. Load schema (REQUIRED)
+schema = Unibuf.parse_flatbuffers_schema("monster.fbs")
+
+# 2. Prepare data as hash
+data = {
+  "name" => "Dragon",
+  "hp" => 500,
+  "friendly" => false
+}
+
+# 3. Serialize
+serializer = Unibuf::Serializers::Flatbuffers::BinarySerializer.new(schema)
+binary_data = serializer.serialize(data)
+
+# 4. Write to file
+File.binwrite("dragon.fb", binary_data)
+----
+
+=== Serializing with all scalar types
+
+[source,ruby]
+----
+data = {
+  "byte_val" => -42,           # signed byte
+  "ubyte_val" => 200,          # unsigned byte
+  "short_val" => -1000,        # signed short
+  "ushort_val" => 5000,        # unsigned short
+  "int_val" => -100000,        # signed int
+  "uint_val" => 200000,        # unsigned int
+  "long_val" => -1000000000,   # signed long
+  "ulong_val" => 2000000000,   # unsigned long
+  "float_val" => 3.14,         # 32-bit float
+  "double_val" => 3.14159,     # 64-bit double
+  "bool_val" => true,          # boolean
+  "string_val" => "Hello!"     # string
+}
+
+serializer = Unibuf::Serializers::Flatbuffers::BinarySerializer.new(schema)
+binary = serializer.serialize(data)
+----
+
+=== Round-trip verification
+
+[source,ruby]
+----
+# Original data
+original = {
+  "name" => "Goblin",
+  "hp" => 75,
+  "mana" => 50
+}
+
+# Serialize
+serializer = Unibuf::Serializers::Flatbuffers::BinarySerializer.new(schema)
+binary = serializer.serialize(original)
+
+# Parse back
+parser = Unibuf::Parsers::Flatbuffers::BinaryParser.new(schema)
+reparsed = parser.parse(binary)
+
+# Verify
+puts original == reparsed  # => true
+----
+
+== FlatBuffers vs Protocol Buffers
+
+=== When to use FlatBuffers
+
+Use FlatBuffers when:
+
+* Zero-copy access is important
+* Memory efficiency is critical
+* Random field access is needed
+* Backwards compatibility with size constraints
+* Game development or embedded systems
+
+=== When to use Protocol Buffers
+
+Use Protocol Buffers when:
+
+* Schema evolution is important
+* Reflection is needed
+* gRPC integration
+* Wide language support
+* Mature ecosystem
+
+== Complete example
+
+=== Schema file (monster.fbs)
+
+[source]
+----
+namespace MyGame.Sample;
+
+enum Color : byte { Red = 0, Green, Blue = 2 }
+
+table Monster {
+  pos: Vec3;
+  hp: short = 100;
+  name: string;
+  friendly: bool = false (deprecated);
+  inventory: [ubyte];
+  color: Color = Blue;
+}
+
+struct Vec3 {
+  x: float;
+  y: float;
+  z: float;
+}
+
+root_type Monster;
+----
+
+=== Parsing the schema
+
+[source,ruby]
+----
+schema = Unibuf.parse_flatbuffers_schema("monster.fbs")
+
+# Access root type
+puts schema.root_type  # => "Monster"
+
+# Find table
+monster = schema.find_table("Monster")
+puts monster.field_names  # => ["pos", "hp", "name", "friendly", "inventory", "color"]
+
+# Find struct
+vec3 = schema.find_struct("Vec3")
+puts vec3.fixed_size?  # => true (structs are always fixed size)
+
+# Find enum
+color = schema.find_enum("Color")
+puts color.values  # => {"Red"=>0, "Green"=>1, "Blue"=>2}
+----
+
+=== Creating and reading binary data
+
+[source,ruby]
+----
+# Create data
+data = {
+  "name" => "Orc",
+  "hp" => 150,
+  "friendly" => false,
+  "inventory" => [1, 2, 3, 4, 5],
+  "color" => "Green"
+}
+
+# Write FlatBuffer
+serializer = Unibuf::Serializers::Flatbuffers::BinarySerializer.new(schema)
+binary = serializer.serialize_to_file(data, "orc.fb")
+
+# Read FlatBuffer
+parser = Unibuf::Parsers::Flatbuffers::BinaryParser.new(schema)
+loaded = parser.parse_file("orc.fb")
+
+puts loaded["name"]      # => "Orc"
+puts loaded["hp"]        # => 150
+puts loaded["inventory"] # => [1, 2, 3, 4, 5]
+----
+
+== CLI usage
+
+=== Schema inspection
+
+[source,shell]
+----
+# View FlatBuffers schema structure
+unibuf schema monster.fbs
+
+# Output as JSON for tooling
+unibuf schema monster.fbs --format json
+----
+
+== Technical details
+
+=== vtable format
+
+FlatBuffers uses vtables for schema evolution:
+
+[source]
+----
+vtable:
+  vtable_size: uint16    # Size of vtable in bytes
+  object_size: uint16    # Size of object in bytes
+  field_offsets: [uint16]  # Offset for each field (0 if not present)
+----
+
+=== Table format
+
+[source]
+----
+table:
+  vtable_offset: int32 (soffset)  # Negative offset to vtable
+  fields: [...inline scalars and uoffsets to out-of-line data...]
+----
+
+=== Scalar storage
+
+Scalars are stored INLINE in table body:
+- byte, ubyte, bool: 1 byte
+- short, ushort: 2 bytes
+- int, uint, float: 4 bytes
+- long, ulong, double: 8 bytes
+
+Non-scalars (strings, vectors, nested tables) are stored OUT-OF-LINE with offsets (uoffset32) in the table.
+
+=== String format
+
+[source]
+----
+string:
+  length: uint32
+  data: [byte]
+  null_terminator: byte (0x00)
+  padding: align to 4 bytes
+----
+
+== Limitations and future work
+
+=== Currently supported
+
+✅ All scalar types
+✅ Strings
+✅ Tables
+✅ Enums
+✅ vtable generation and parsing
+✅ Round-trip serialization
+
+=== Future enhancements
+
+* Vector serialization (currently not implemented)
+* Struct serialization (currently not implemented)
+* Union support (parsing only)
+* Nested table serialization
+* vtable deduplication for smaller files
+* Zero-copy access API
+
+== Performance characteristics
+
+FlatBuffers advantages:
+
+Fast access::
+Offset-based access without full deserialization
+
+Memory efficient::
+In-place access without additional allocation
+
+Backwards compatible::
+vtables enable schema evolution
+
+== Contributing
+
+FlatBuffers support is complete for basic use cases. Contributions welcome for:
+
+* Vector serialization
+* Struct handling
+* Union support
+* Performance optimizations
+* Additional test cases
+
+== References
+
+* FlatBuffers specification: https://flatbuffers.dev/
+* FlatBuffers grammar: https://flatbuffers.dev/flatbuffers_grammar.html
+* FlatBuffers internals: https://flatbuffers.dev/md__internals.html
+* Unibuf GitHub: https://github.com/lutaml/unibuf

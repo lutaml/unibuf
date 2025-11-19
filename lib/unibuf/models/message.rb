@@ -182,6 +182,16 @@ module Unibuf
         lines.join("\n")
       end
 
+      # Serialize to binary Protocol Buffer format
+      # @param schema [Models::Schema] The schema defining the message structure
+      # @param message_type [String] The message type name from schema
+      # @return [String] Binary data
+      def to_binary(schema:, message_type: nil)
+        require_relative "../serializers/binary_serializer"
+        serializer = Serializers::BinarySerializer.new(schema)
+        serializer.serialize(self, message_type: message_type)
+      end
+
       # Comparison
       def ==(other)
         return false unless other.is_a?(Message)

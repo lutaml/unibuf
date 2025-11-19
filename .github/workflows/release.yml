@@ -18,7 +18,6 @@ on:
   repository_dispatch:
     types: [ do-release ]
 
-
 jobs:
   release:
     uses: metanorma/ci/.github/workflows/rubygems-release.yml@main
