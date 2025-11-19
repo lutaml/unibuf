@@ -7,7 +7,7 @@ RSpec.describe Unibuf::Models::EnumDefinition do
     it "creates with name and values" do
       enum_def = described_class.new(
         name: "Status",
-        values: { "OK" => 0, "ERROR" => 1 }
+        values: { "OK" => 0, "ERROR" => 1 },
       )
 
       expect(enum_def.name).to eq("Status")
@@ -17,7 +17,7 @@ RSpec.describe Unibuf::Models::EnumDefinition do
     it "handles empty values hash" do
       enum_def = described_class.new(
         name: "Empty",
-        values: {}
+        values: {},
       )
 
       expect(enum_def.values).to be_empty
@@ -28,7 +28,7 @@ RSpec.describe Unibuf::Models::EnumDefinition do
     let(:enum_def) do
       described_class.new(
         name: "Status",
-        values: { "OK" => 0, "WARNING" => 1, "ERROR" => 2 }
+        values: { "OK" => 0, "WARNING" => 1, "ERROR" => 2 },
       )
     end
 
@@ -65,7 +65,7 @@ RSpec.describe Unibuf::Models::EnumDefinition do
     it "validates successfully with name and values" do
       enum_def = described_class.new(
         name: "Status",
-        values: { "OK" => 0 }
+        values: { "OK" => 0 },
       )
 
       expect(enum_def.valid?).to be true
@@ -74,29 +74,36 @@ RSpec.describe Unibuf::Models::EnumDefinition do
 
     it "fails without name" do
       enum_def = described_class.new(
-        values: { "OK" => 0 }
+        values: { "OK" => 0 },
       )
 
       expect(enum_def.valid?).to be false
-      expect { enum_def.validate! }.to raise_error(Unibuf::ValidationError, /name required/)
+      expect do
+        enum_def.validate!
+      end.to raise_error(Unibuf::ValidationError, /name required/)
     end
 
     it "fails with empty values" do
       enum_def = described_class.new(
         name: "Empty",
-        values: {}
+        values: {},
       )
 
-      expect { enum_def.validate! }.to raise_error(Unibuf::ValidationError, /at least one value/)
+      expect do
+        enum_def.validate!
+      end.to raise_error(Unibuf::ValidationError,
+                         /at least one value/)
     end
 
     it "detects duplicate values" do
       enum_def = described_class.new(
         name: "Bad",
-        values: { "A" => 0, "B" => 0 }
+        values: { "A" => 0, "B" => 0 },
       )
 
-      expect { enum_def.validate! }.to raise_error(Unibuf::ValidationError, /Duplicate/)
+      expect do
+        enum_def.validate!
+      end.to raise_error(Unibuf::ValidationError, /Duplicate/)
     end
   end
 
@@ -104,7 +111,7 @@ RSpec.describe Unibuf::Models::EnumDefinition do
     let(:enum_def) do
       described_class.new(
         name: "Status",
-        values: { "OK" => 0, "ERROR" => 1 }
+        values: { "OK" => 0, "ERROR" => 1 },
       )
     end
 
@@ -131,7 +138,7 @@ RSpec.describe Unibuf::Models::EnumDefinition do
     it "converts to hash" do
       enum_def = described_class.new(
         name: "Status",
-        values: { "OK" => 0, "ERROR" => 1 }
+        values: { "OK" => 0, "ERROR" => 1 },
       )
 
       hash = enum_def.to_h

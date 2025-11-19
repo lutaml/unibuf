@@ -17,8 +17,8 @@ RSpec.describe Unibuf::Models::Values::MessageValue do
       {
         "fields" => [
           { "name" => "field1", "value" => "value1" },
-          { "name" => "field2", "value" => 42 }
-        ]
+          { "name" => "field2", "value" => 42 },
+        ],
       }
     end
 
@@ -53,8 +53,8 @@ RSpec.describe Unibuf::Models::Values::MessageValue do
     it "serializes nested message" do
       message_data = {
         "fields" => [
-          { "name" => "name", "value" => "test" }
-        ]
+          { "name" => "name", "value" => "test" },
+        ],
       }
 
       message_value = described_class.new(message_data)
@@ -81,9 +81,9 @@ RSpec.describe Unibuf::Models::Values::MessageValue do
     end
 
     it "rejects hash without fields key" do
-      expect {
+      expect do
         described_class.new("invalid" => "data")
-      }.to raise_error(Unibuf::InvalidValueError, /fields/)
+      end.to raise_error(Unibuf::InvalidValueError, /fields/)
     end
 
     it "rejects non-hash" do
@@ -101,8 +101,10 @@ RSpec.describe Unibuf::Models::Values::MessageValue do
     end
 
     it "not equals message value with different fields" do
-      value1 = described_class.new("fields" => [{ "name" => "f1", "value" => "v1" }])
-      value2 = described_class.new("fields" => [{ "name" => "f2", "value" => "v2" }])
+      value1 = described_class.new("fields" => [{ "name" => "f1",
+                                                  "value" => "v1" }])
+      value2 = described_class.new("fields" => [{ "name" => "f2",
+                                                  "value" => "v2" }])
       expect(value1).not_to eq(value2)
     end
 

@@ -8,7 +8,7 @@ RSpec.describe Unibuf::Models::FieldDefinition do
       field_def = described_class.new(
         name: "test",
         type: "string",
-        number: 1
+        number: 1,
       )
 
       expect(field_def.name).to eq("test")
@@ -21,7 +21,7 @@ RSpec.describe Unibuf::Models::FieldDefinition do
         name: "test",
         type: "int32",
         number: 1,
-        label: "optional"
+        label: "optional",
       )
 
       expect(field_def.label).to eq("optional")
@@ -33,7 +33,7 @@ RSpec.describe Unibuf::Models::FieldDefinition do
         name: "tags",
         type: "string",
         number: 1,
-        label: "repeated"
+        label: "repeated",
       )
 
       expect(field_def.repeated?).to be true
@@ -45,7 +45,7 @@ RSpec.describe Unibuf::Models::FieldDefinition do
         type: "map",
         number: 1,
         key_type: "string",
-        value_type: "int32"
+        value_type: "int32",
       )
 
       expect(field_def.map?).to be true
@@ -60,7 +60,7 @@ RSpec.describe Unibuf::Models::FieldDefinition do
         name: "test",
         type: "string",
         number: 1,
-        label: "repeated"
+        label: "repeated",
       )
 
       expect(field_def.repeated?).to be true
@@ -72,7 +72,7 @@ RSpec.describe Unibuf::Models::FieldDefinition do
         name: "test",
         type: "string",
         number: 1,
-        label: "optional"
+        label: "optional",
       )
 
       expect(field_def.optional?).to be true
@@ -83,7 +83,7 @@ RSpec.describe Unibuf::Models::FieldDefinition do
       field_def = described_class.new(
         name: "test",
         type: "string",
-        number: 1
+        number: 1,
       )
 
       expect(field_def.optional?).to be true
@@ -94,7 +94,7 @@ RSpec.describe Unibuf::Models::FieldDefinition do
         field_def = described_class.new(
           name: "test",
           type: type,
-          number: 1
+          number: 1,
         )
 
         expect(field_def.scalar_type?).to be true
@@ -106,7 +106,7 @@ RSpec.describe Unibuf::Models::FieldDefinition do
       field_def = described_class.new(
         name: "nested",
         type: "CustomMessage",
-        number: 1
+        number: 1,
       )
 
       expect(field_def.message_type?).to be true
@@ -119,7 +119,7 @@ RSpec.describe Unibuf::Models::FieldDefinition do
         type: "map",
         number: 1,
         key_type: "string",
-        value_type: "int32"
+        value_type: "int32",
       )
 
       expect(field_def.map?).to be true
@@ -132,7 +132,7 @@ RSpec.describe Unibuf::Models::FieldDefinition do
       field_def = described_class.new(
         name: "test",
         type: "string",
-        number: 1
+        number: 1,
       )
 
       expect(field_def.valid?).to be true
@@ -142,39 +142,49 @@ RSpec.describe Unibuf::Models::FieldDefinition do
     it "fails without name" do
       field_def = described_class.new(
         type: "string",
-        number: 1
+        number: 1,
       )
 
       expect(field_def.valid?).to be false
-      expect { field_def.validate! }.to raise_error(Unibuf::ValidationError, /name required/)
+      expect do
+        field_def.validate!
+      end.to raise_error(Unibuf::ValidationError, /name required/)
     end
 
     it "fails without type" do
       field_def = described_class.new(
         name: "test",
-        number: 1
+        number: 1,
       )
 
-      expect { field_def.validate! }.to raise_error(Unibuf::ValidationError, /type required/)
+      expect do
+        field_def.validate!
+      end.to raise_error(Unibuf::ValidationError, /type required/)
     end
 
     it "fails without number" do
       field_def = described_class.new(
         name: "test",
-        type: "string"
+        type: "string",
       )
 
-      expect { field_def.validate! }.to raise_error(Unibuf::ValidationError, /number required/)
+      expect do
+        field_def.validate!
+      end.to raise_error(Unibuf::ValidationError,
+                         /number required/)
     end
 
     it "fails with non-positive number" do
       field_def = described_class.new(
         name: "test",
         type: "string",
-        number: 0
+        number: 0,
       )
 
-      expect { field_def.validate! }.to raise_error(Unibuf::ValidationError, /must be positive/)
+      expect do
+        field_def.validate!
+      end.to raise_error(Unibuf::ValidationError,
+                         /must be positive/)
     end
   end
 
@@ -190,7 +200,7 @@ RSpec.describe Unibuf::Models::FieldDefinition do
       field_def = described_class.new(name: "test", type: "int32", number: 1)
 
       expect(field_def.valid_value?(42)).to be true
-      expect(field_def.valid_value?(2**31 - 1)).to be true
+      expect(field_def.valid_value?((2**31) - 1)).to be true
       expect(field_def.valid_value?(-2**31)).to be true
       expect(field_def.valid_value?(2**31)).to be false
       expect(field_def.valid_value?("string")).to be false
@@ -201,7 +211,7 @@ RSpec.describe Unibuf::Models::FieldDefinition do
 
       expect(field_def.valid_value?(42)).to be true
       expect(field_def.valid_value?(0)).to be true
-      expect(field_def.valid_value?(2**32 - 1)).to be true
+      expect(field_def.valid_value?((2**32) - 1)).to be true
       expect(field_def.valid_value?(-1)).to be false
       expect(field_def.valid_value?(2**32)).to be false
     end
@@ -227,7 +237,7 @@ RSpec.describe Unibuf::Models::FieldDefinition do
         name: "test",
         type: "string",
         number: 1,
-        label: "optional"
+        label: "optional",
       )
 
       expect(field_def.valid_value?(nil)).to be true
@@ -237,7 +247,7 @@ RSpec.describe Unibuf::Models::FieldDefinition do
       field_def = described_class.new(
         name: "nested",
         type: "CustomMessage",
-        number: 1
+        number: 1,
       )
 
       expect(field_def.valid_value?({})).to be true
@@ -251,7 +261,7 @@ RSpec.describe Unibuf::Models::FieldDefinition do
         name: "test",
         type: "string",
         number: 1,
-        label: "repeated"
+        label: "repeated",
       )
 
       hash = field_def.to_h
@@ -265,7 +275,7 @@ RSpec.describe Unibuf::Models::FieldDefinition do
       field_def = described_class.new(
         name: "test",
         type: "string",
-        number: 1
+        number: 1,
       )
 
       hash = field_def.to_h
@@ -281,7 +291,7 @@ RSpec.describe Unibuf::Models::FieldDefinition do
         type: "map",
         number: 1,
         key_type: "string",
-        value_type: "int32"
+        value_type: "int32",
       )
 
       hash = field_def.to_h

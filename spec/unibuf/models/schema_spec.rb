@@ -11,14 +11,15 @@ RSpec.describe Unibuf::Models::Schema do
 
     it "creates with custom attributes" do
       msg_def = Unibuf::Models::MessageDefinition.new(name: "Test", fields: [])
-      enum_def = Unibuf::Models::EnumDefinition.new(name: "Status", values: { "OK" => 0 })
+      enum_def = Unibuf::Models::EnumDefinition.new(name: "Status",
+                                                    values: { "OK" => 0 })
 
       schema = described_class.new(
         syntax: "proto3",
         package: "com.example",
         imports: ["other.proto"],
         messages: [msg_def],
-        enums: [enum_def]
+        enums: [enum_def],
       )
 
       expect(schema.syntax).to eq("proto3")
@@ -46,7 +47,7 @@ RSpec.describe Unibuf::Models::Schema do
       described_class.new(
         package: "test.package",
         messages: [msg_def1, msg_def2],
-        enums: [enum_def]
+        enums: [enum_def],
       )
     end
 
@@ -97,13 +98,15 @@ RSpec.describe Unibuf::Models::Schema do
     it "fails validation with non-proto3 syntax" do
       schema = described_class.new(syntax: "proto2")
       expect(schema.valid?).to be false
-      expect { schema.validate! }.to raise_error(Unibuf::ValidationError, /proto3/)
+      expect do
+        schema.validate!
+      end.to raise_error(Unibuf::ValidationError, /proto3/)
     end
 
     it "validates all messages" do
       invalid_msg = Unibuf::Models::MessageDefinition.new(fields: []) # No name
       schema = described_class.new(
-        messages: [invalid_msg]
+        messages: [invalid_msg],
       )
 
       expect { schema.validate! }.to raise_error(Unibuf::ValidationError)
@@ -112,7 +115,7 @@ RSpec.describe Unibuf::Models::Schema do
     it "validates all enums" do
       invalid_enum = Unibuf::Models::EnumDefinition.new(name: "Bad", values: {}) # Empty
       schema = described_class.new(
-        enums: [invalid_enum]
+        enums: [invalid_enum],
       )
 
       expect { schema.validate! }.to raise_error(Unibuf::ValidationError)
@@ -125,7 +128,7 @@ RSpec.describe Unibuf::Models::Schema do
       schema = described_class.new(
         syntax: "proto3",
         package: "test",
-        messages: [msg_def]
+        messages: [msg_def],
       )
 
       hash = schema.to_h
