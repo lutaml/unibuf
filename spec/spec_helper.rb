@@ -11,7 +11,7 @@ SimpleCov.start do
   add_filter "/exe/"
 
   minimum_coverage 80
-  minimum_coverage_by_file 30  # Infrastructure files have untested helper methods
+  minimum_coverage_by_file 30 # Infrastructure files have untested helper methods
 
   enable_coverage :branch
 end

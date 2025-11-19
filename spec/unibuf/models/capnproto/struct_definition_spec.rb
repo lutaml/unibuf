@@ -11,7 +11,7 @@ RSpec.describe Unibuf::Models::Capnproto::StructDefinition do
       field = Unibuf::Models::Capnproto::FieldDefinition.new(
         name: "id",
         ordinal: 0,
-        type: "UInt32"
+        type: "UInt32",
       )
       struct = described_class.new(name: "Person", fields: [field])
 
@@ -30,7 +30,7 @@ RSpec.describe Unibuf::Models::Capnproto::StructDefinition do
       nested_struct = described_class.new(name: "Inner", fields: [])
       struct = described_class.new(
         name: "Outer",
-        nested_structs: [nested_struct]
+        nested_structs: [nested_struct],
       )
 
       expect(struct.nested_structs.length).to eq(1)
@@ -42,7 +42,7 @@ RSpec.describe Unibuf::Models::Capnproto::StructDefinition do
       Unibuf::Models::Capnproto::FieldDefinition.new(
         name: "id",
         ordinal: 0,
-        type: "UInt32"
+        type: "UInt32",
       )
     end
 
@@ -50,7 +50,7 @@ RSpec.describe Unibuf::Models::Capnproto::StructDefinition do
       Unibuf::Models::Capnproto::FieldDefinition.new(
         name: "name",
         ordinal: 1,
-        type: "Text"
+        type: "Text",
       )
     end
 
@@ -86,38 +86,46 @@ RSpec.describe Unibuf::Models::Capnproto::StructDefinition do
       struct = described_class.new(fields: [])
 
       expect(struct.valid?).to be false
-      expect { struct.validate! }.to raise_error(Unibuf::ValidationError, /name required/)
+      expect do
+        struct.validate!
+      end.to raise_error(Unibuf::ValidationError, /name required/)
     end
 
     it "requires at least one field or union" do
       struct = described_class.new(name: "Empty", fields: [])
 
       expect(struct.valid?).to be false
-      expect { struct.validate! }.to raise_error(Unibuf::ValidationError, /at least one field/)
+      expect do
+        struct.validate!
+      end.to raise_error(Unibuf::ValidationError,
+                         /at least one field/)
     end
 
     it "detects duplicate ordinals" do
       field1 = Unibuf::Models::Capnproto::FieldDefinition.new(
         name: "a",
         ordinal: 0,
-        type: "UInt32"
+        type: "UInt32",
       )
       field2 = Unibuf::Models::Capnproto::FieldDefinition.new(
         name: "b",
         ordinal: 0,
-        type: "UInt32"
+        type: "UInt32",
       )
       struct = described_class.new(name: "Test", fields: [field1, field2])
 
       expect(struct.valid?).to be false
-      expect { struct.validate! }.to raise_error(Unibuf::ValidationError, /Duplicate ordinals/)
+      expect do
+        struct.validate!
+      end.to raise_error(Unibuf::ValidationError,
+                         /Duplicate ordinals/)
     end
 
     it "validates successfully with valid fields" do
       field = Unibuf::Models::Capnproto::FieldDefinition.new(
         name: "id",
         ordinal: 0,
-        type: "UInt32"
+        type: "UInt32",
       )
       struct = described_class.new(name: "Person", fields: [field])
 
@@ -131,12 +139,12 @@ RSpec.describe Unibuf::Models::Capnproto::StructDefinition do
       field = Unibuf::Models::Capnproto::FieldDefinition.new(
         name: "id",
         ordinal: 0,
-        type: "UInt32"
+        type: "UInt32",
       )
       struct = described_class.new(
         name: "Person",
         fields: [field],
-        annotations: [{ name: "annotation", value: true }]
+        annotations: [{ name: "annotation", value: true }],
       )
 
       hash = struct.to_h

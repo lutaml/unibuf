@@ -17,7 +17,7 @@ RSpec.describe Unibuf::Models::Capnproto::Schema do
     it "creates schema with structs" do
       struct = Unibuf::Models::Capnproto::StructDefinition.new(
         name: "Person",
-        fields: []
+        fields: [],
       )
       schema = described_class.new(structs: [struct])
 
@@ -28,7 +28,7 @@ RSpec.describe Unibuf::Models::Capnproto::Schema do
     it "creates schema with enums" do
       enum = Unibuf::Models::Capnproto::EnumDefinition.new(
         name: "Color",
-        values: { "red" => 0, "green" => 1 }
+        values: { "red" => 0, "green" => 1 },
       )
       schema = described_class.new(enums: [enum])
 
@@ -38,7 +38,7 @@ RSpec.describe Unibuf::Models::Capnproto::Schema do
     it "creates schema with interfaces" do
       interface = Unibuf::Models::Capnproto::InterfaceDefinition.new(
         name: "Calculator",
-        methods: []
+        methods: [],
       )
       schema = described_class.new(interfaces: [interface])
 
@@ -50,28 +50,28 @@ RSpec.describe Unibuf::Models::Capnproto::Schema do
     let(:struct1) do
       Unibuf::Models::Capnproto::StructDefinition.new(
         name: "Person",
-        fields: []
+        fields: [],
       )
     end
 
     let(:struct2) do
       Unibuf::Models::Capnproto::StructDefinition.new(
         name: "Address",
-        fields: []
+        fields: [],
       )
     end
 
     let(:enum1) do
       Unibuf::Models::Capnproto::EnumDefinition.new(
         name: "Color",
-        values: { "red" => 0 }
+        values: { "red" => 0 },
       )
     end
 
     let(:interface1) do
       Unibuf::Models::Capnproto::InterfaceDefinition.new(
         name: "Calculator",
-        methods: []
+        methods: [],
       )
     end
 
@@ -80,7 +80,7 @@ RSpec.describe Unibuf::Models::Capnproto::Schema do
         file_id: "0x123",
         structs: [struct1, struct2],
         enums: [enum1],
-        interfaces: [interface1]
+        interfaces: [interface1],
       )
     end
 
@@ -121,7 +121,9 @@ RSpec.describe Unibuf::Models::Capnproto::Schema do
       schema = described_class.new(structs: [])
 
       expect(schema.valid?).to be false
-      expect { schema.validate! }.to raise_error(Unibuf::ValidationError, /File ID required/)
+      expect do
+        schema.validate!
+      end.to raise_error(Unibuf::ValidationError, /File ID required/)
     end
 
     it "validates successfully with file_id" do
@@ -131,13 +133,13 @@ RSpec.describe Unibuf::Models::Capnproto::Schema do
           Unibuf::Models::Capnproto::FieldDefinition.new(
             name: "value",
             ordinal: 0,
-            type: "UInt32"
-          )
-        ]
+            type: "UInt32",
+          ),
+        ],
       )
       schema = described_class.new(
         file_id: "0x123",
-        structs: [struct]
+        structs: [struct],
       )
 
       expect(schema.valid?).to be true
@@ -153,7 +155,7 @@ RSpec.describe Unibuf::Models::Capnproto::Schema do
         structs: [],
         enums: [],
         interfaces: [],
-        constants: []
+        constants: [],
       )
 
       hash = schema.to_h
