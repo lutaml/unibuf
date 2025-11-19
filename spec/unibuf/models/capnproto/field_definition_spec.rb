@@ -9,7 +9,7 @@ RSpec.describe Unibuf::Models::Capnproto::FieldDefinition do
       field = described_class.new(
         name: "id",
         ordinal: 0,
-        type: "UInt32"
+        type: "UInt32",
       )
 
       expect(field.name).to eq("id")
@@ -22,7 +22,7 @@ RSpec.describe Unibuf::Models::Capnproto::FieldDefinition do
         name: "active",
         ordinal: 1,
         type: "Bool",
-        default_value: true
+        default_value: true,
       )
 
       expect(field.default_value).to be true
@@ -31,7 +31,8 @@ RSpec.describe Unibuf::Models::Capnproto::FieldDefinition do
 
   describe "type classification" do
     it "recognizes primitive types" do
-      primitives = %w[Bool Int8 Int16 Int32 Int64 UInt8 UInt16 UInt32 UInt64 Float32 Float64 Void AnyPointer]
+      primitives = %w[Bool Int8 Int16 Int32 Int64 UInt8 UInt16 UInt32 UInt64
+                      Float32 Float64 Void AnyPointer]
 
       primitives.each do |type|
         field = described_class.new(name: "test", ordinal: 0, type: type)
@@ -52,7 +53,7 @@ RSpec.describe Unibuf::Models::Capnproto::FieldDefinition do
       field = described_class.new(
         name: "items",
         ordinal: 0,
-        type: { generic: "List", element_type: "Int32" }
+        type: { generic: "List", element_type: "Int32" },
       )
 
       expect(field.generic_type?).to be true
@@ -64,7 +65,7 @@ RSpec.describe Unibuf::Models::Capnproto::FieldDefinition do
       field = described_class.new(
         name: "address",
         ordinal: 0,
-        type: "Address"
+        type: "Address",
       )
 
       expect(field.user_type?).to be true
@@ -77,35 +78,44 @@ RSpec.describe Unibuf::Models::Capnproto::FieldDefinition do
       field = described_class.new(ordinal: 0, type: "UInt32")
 
       expect(field.valid?).to be false
-      expect { field.validate! }.to raise_error(Unibuf::ValidationError, /name required/)
+      expect do
+        field.validate!
+      end.to raise_error(Unibuf::ValidationError, /name required/)
     end
 
     it "requires ordinal" do
       field = described_class.new(name: "test", type: "UInt32")
 
       expect(field.valid?).to be false
-      expect { field.validate! }.to raise_error(Unibuf::ValidationError, /ordinal required/)
+      expect do
+        field.validate!
+      end.to raise_error(Unibuf::ValidationError, /ordinal required/)
     end
 
     it "requires type" do
       field = described_class.new(name: "test", ordinal: 0)
 
       expect(field.valid?).to be false
-      expect { field.validate! }.to raise_error(Unibuf::ValidationError, /type required/)
+      expect do
+        field.validate!
+      end.to raise_error(Unibuf::ValidationError, /type required/)
     end
 
     it "rejects negative ordinals" do
       field = described_class.new(name: "test", ordinal: -1, type: "UInt32")
 
       expect(field.valid?).to be false
-      expect { field.validate! }.to raise_error(Unibuf::ValidationError, /must be non-negative/)
+      expect do
+        field.validate!
+      end.to raise_error(Unibuf::ValidationError,
+                         /must be non-negative/)
     end
 
     it "validates successfully with valid attributes" do
       field = described_class.new(
         name: "id",
         ordinal: 0,
-        type: "UInt32"
+        type: "UInt32",
       )
 
       expect(field.valid?).to be true
@@ -119,7 +129,7 @@ RSpec.describe Unibuf::Models::Capnproto::FieldDefinition do
         name: "id",
         ordinal: 0,
         type: "UInt32",
-        default_value: 0
+        default_value: 0,
       )
 
       hash = field.to_h

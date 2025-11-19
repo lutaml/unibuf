@@ -14,42 +14,53 @@ require "unibuf/serializers/capnproto/binary_serializer"
 RSpec.describe "Cap'n Proto Error Handling" do
   describe "SegmentReader errors" do
     it "raises on invalid segment ID" do
-      data = [0].pack("L<") + [1].pack("L<") + "\x00" * 8
+      data = [0].pack("L<") + [1].pack("L<") + ("\x00" * 8)
       reader = Unibuf::Parsers::Capnproto::SegmentReader.new(data)
 
-      expect { reader.read_word(5, 0) }.to raise_error(ArgumentError, /Invalid segment ID/)
+      expect do
+        reader.read_word(5, 0)
+      end.to raise_error(ArgumentError, /Invalid segment ID/)
     end
 
     it "raises on invalid word offset" do
-      data = [0].pack("L<") + [1].pack("L<") + "\x00" * 8
+      data = [0].pack("L<") + [1].pack("L<") + ("\x00" * 8)
       reader = Unibuf::Parsers::Capnproto::SegmentReader.new(data)
 
-      expect { reader.read_word(0, -1) }.to raise_error(ArgumentError, /Invalid word offset/)
+      expect do
+        reader.read_word(0, -1)
+      end.to raise_error(ArgumentError, /Invalid word offset/)
     end
 
     it "raises on offset out of bounds" do
-      data = [0].pack("L<") + [1].pack("L<") + "\x00" * 8
+      data = [0].pack("L<") + [1].pack("L<") + ("\x00" * 8)
       reader = Unibuf::Parsers::Capnproto::SegmentReader.new(data)
 
-      expect { reader.read_word(0, 10) }.to raise_error(ArgumentError, /out of bounds/)
+      expect do
+        reader.read_word(0, 10)
+      end.to raise_error(ArgumentError, /out of bounds/)
     end
 
     it "raises on invalid segment for read_bytes" do
-      data = [0].pack("L<") + [1].pack("L<") + "\x00" * 8
+      data = [0].pack("L<") + [1].pack("L<") + ("\x00" * 8)
       reader = Unibuf::Parsers::Capnproto::SegmentReader.new(data)
 
-      expect { reader.read_bytes(5, 0, 8) }.to raise_error(ArgumentError, /Invalid segment ID/)
+      expect do
+        reader.read_bytes(5, 0,
+                          8)
+      end.to raise_error(ArgumentError, /Invalid segment ID/)
     end
 
     it "raises on bytes offset out of bounds" do
-      data = [0].pack("L<") + [1].pack("L<") + "\x00" * 8
+      data = [0].pack("L<") + [1].pack("L<") + ("\x00" * 8)
       reader = Unibuf::Parsers::Capnproto::SegmentReader.new(data)
 
-      expect { reader.read_bytes(0, 100, 8) }.to raise_error(ArgumentError, /out of bounds/)
+      expect do
+        reader.read_bytes(0, 100, 8)
+      end.to raise_error(ArgumentError, /out of bounds/)
     end
 
     it "checks if segment exists" do
-      data = [0].pack("L<") + [1].pack("L<") + "\x00" * 8
+      data = [0].pack("L<") + [1].pack("L<") + ("\x00" * 8)
       reader = Unibuf::Parsers::Capnproto::SegmentReader.new(data)
 
       expect(reader.segment_exists?(0)).to be true
@@ -105,7 +116,9 @@ RSpec.describe "Cap'n Proto Error Handling" do
 
   describe "BinaryParser errors" do
     it "raises when schema is nil" do
-      expect { Unibuf::Parsers::Capnproto::BinaryParser.new(nil) }.not_to raise_error
+      expect do
+        Unibuf::Parsers::Capnproto::BinaryParser.new(nil)
+      end.not_to raise_error
     end
 
     it "raises on invalid root pointer" do
@@ -114,26 +127,34 @@ RSpec.describe "Cap'n Proto Error Handling" do
         structs: [
           Unibuf::Models::Capnproto::StructDefinition.new(
             name: "Test",
-            fields: [Unibuf::Models::Capnproto::FieldDefinition.new(name: "a", ordinal: 0, type: "UInt32")]
-          )
-        ]
+            fields: [Unibuf::Models::Capnproto::FieldDefinition.new(name: "a",
+                                                                    ordinal: 0, type: "UInt32")],
+          ),
+        ],
       )
       parser = Unibuf::Parsers::Capnproto::BinaryParser.new(schema)
 
       # Create data with non-struct root pointer (list pointer)
       data = [0].pack("L<") + [1].pack("L<") +
-             [1 | (1 << 2) | (1 << 32) | (10 << 35)].pack("Q<")  # List pointer
+        [1 | (1 << 2) | (1 << 32) | (10 << 35)].pack("Q<") # List pointer
 
-      expect { parser.parse(data, root_type: "Test") }.to raise_error(Unibuf::ParseError, /Invalid root pointer/)
+      expect do
+        parser.parse(data,
+                     root_type: "Test")
+      end.to raise_error(Unibuf::ParseError, /Invalid root pointer/)
     end
 
     it "raises when struct type not found" do
-      schema = Unibuf::Models::Capnproto::Schema.new(file_id: "0x123", structs: [])
+      schema = Unibuf::Models::Capnproto::Schema.new(file_id: "0x123",
+                                                     structs: [])
       parser = Unibuf::Parsers::Capnproto::BinaryParser.new(schema)
 
       data = [0].pack("L<") + [1].pack("L<") + [0 | (0 << 2) | (1 << 32)].pack("Q<")
 
-      expect { parser.parse(data, root_type: "NonExistent") }.to raise_error(Unibuf::ParseError, /not found/)
+      expect do
+        parser.parse(data,
+                     root_type: "NonExistent")
+      end.to raise_error(Unibuf::ParseError, /not found/)
     end
 
     it "returns nil for null pointers" do
@@ -143,17 +164,18 @@ RSpec.describe "Cap'n Proto Error Handling" do
           Unibuf::Models::Capnproto::StructDefinition.new(
             name: "Test",
             fields: [
-              Unibuf::Models::Capnproto::FieldDefinition.new(name: "text", ordinal: 0, type: "Text")
-            ]
-          )
-        ]
+              Unibuf::Models::Capnproto::FieldDefinition.new(name: "text",
+                                                             ordinal: 0, type: "Text"),
+            ],
+          ),
+        ],
       )
       parser = Unibuf::Parsers::Capnproto::BinaryParser.new(schema)
 
       # Create struct with null pointer for text field
       data = [0].pack("L<") + [2].pack("L<") +
-             [0 | (0 << 2) | (0 << 32) | (1 << 48)].pack("Q<") +  # Root pointer to struct
-             [0].pack("Q<")  # Null pointer for text field
+        [0 | (0 << 2) | (0 << 32) | (1 << 48)].pack("Q<") + # Root pointer to struct
+        [0].pack("Q<") # Null pointer for text field
 
       result = parser.parse(data, root_type: "Test")
       expect(result[:text]).to be_nil
@@ -162,31 +184,44 @@ RSpec.describe "Cap'n Proto Error Handling" do
 
   describe "BinarySerializer errors" do
     it "raises when no root type specified" do
-      schema = Unibuf::Models::Capnproto::Schema.new(file_id: "0x123", structs: [])
+      schema = Unibuf::Models::Capnproto::Schema.new(file_id: "0x123",
+                                                     structs: [])
       serializer = Unibuf::Serializers::Capnproto::BinarySerializer.new(schema)
 
-      expect { serializer.serialize({}) }.to raise_error(Unibuf::SerializationError, /No root type/)
+      expect do
+        serializer.serialize({})
+      end.to raise_error(Unibuf::SerializationError,
+                         /No root type/)
     end
 
     it "raises when struct type not found" do
-      schema = Unibuf::Models::Capnproto::Schema.new(file_id: "0x123", structs: [])
+      schema = Unibuf::Models::Capnproto::Schema.new(file_id: "0x123",
+                                                     structs: [])
       serializer = Unibuf::Serializers::Capnproto::BinarySerializer.new(schema)
 
-      expect { serializer.serialize({}, root_type: "NonExistent") }.to raise_error(Unibuf::SerializationError, /not found/)
+      expect do
+        serializer.serialize({},
+                             root_type: "NonExistent")
+      end.to raise_error(Unibuf::SerializationError, /not found/)
     end
   end
 
   describe "ListReader errors" do
     it "raises on index out of bounds for primitives" do
-      data = [0].pack("L<") + [1].pack("L<") + [1, 2, 3, 4, 0, 0, 0, 0].pack("C8")
+      data = [0].pack("L<") + [1].pack("L<") + [1, 2, 3, 4, 0, 0, 0,
+                                                0].pack("C8")
       reader = Unibuf::Parsers::Capnproto::SegmentReader.new(data)
       list = Unibuf::Parsers::Capnproto::ListReader.new(reader, 0, 0, 2, 4)
 
-      expect { list.read_primitive(10, :uint8) }.to raise_error(ArgumentError, /out of bounds/)
+      expect do
+        list.read_primitive(10,
+                            :uint8)
+      end.to raise_error(ArgumentError, /out of bounds/)
     end
 
     it "raises on wrong list type for text" do
-      data = [0].pack("L<") + [1].pack("L<") + [1, 2, 3, 4, 0, 0, 0, 0].pack("C8")
+      data = [0].pack("L<") + [1].pack("L<") + [1, 2, 3, 4, 0, 0, 0,
+                                                0].pack("C8")
       reader = Unibuf::Parsers::Capnproto::SegmentReader.new(data)
       list = Unibuf::Parsers::Capnproto::ListReader.new(reader, 0, 0, 5, 4)  # EIGHT_BYTES, not BYTE
 
@@ -198,11 +233,14 @@ RSpec.describe "Cap'n Proto Error Handling" do
       reader = Unibuf::Parsers::Capnproto::SegmentReader.new(data)
       list = Unibuf::Parsers::Capnproto::ListReader.new(reader, 0, 0, 6, 1)  # POINTER
 
-      expect { list.read_primitive(0, :uint8) }.to raise_error(/Cannot read primitive/)
+      expect do
+        list.read_primitive(0, :uint8)
+      end.to raise_error(/Cannot read primitive/)
     end
 
     it "raises on reading pointers from non-pointer list" do
-      data = [0].pack("L<") + [1].pack("L<") + [1, 2, 3, 4, 0, 0, 0, 0].pack("C8")
+      data = [0].pack("L<") + [1].pack("L<") + [1, 2, 3, 4, 0, 0, 0,
+                                                0].pack("C8")
       reader = Unibuf::Parsers::Capnproto::SegmentReader.new(data)
       list = Unibuf::Parsers::Capnproto::ListReader.new(reader, 0, 0, 2, 4)  # BYTE
 

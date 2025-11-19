@@ -8,7 +8,7 @@ RSpec.describe Unibuf::Models::Capnproto::EnumDefinition do
     it "creates enum with name and values" do
       enum = described_class.new(
         name: "Color",
-        values: { "red" => 0, "green" => 1, "blue" => 2 }
+        values: { "red" => 0, "green" => 1, "blue" => 2 },
       )
 
       expect(enum.name).to eq("Color")
@@ -20,7 +20,7 @@ RSpec.describe Unibuf::Models::Capnproto::EnumDefinition do
     let(:enum_def) do
       described_class.new(
         name: "Color",
-        values: { "red" => 0, "green" => 1, "blue" => 2 }
+        values: { "red" => 0, "green" => 1, "blue" => 2 },
       )
     end
 
@@ -48,30 +48,36 @@ RSpec.describe Unibuf::Models::Capnproto::EnumDefinition do
       enum = described_class.new(values: { "a" => 0 })
 
       expect(enum.valid?).to be false
-      expect { enum.validate! }.to raise_error(Unibuf::ValidationError, /name required/)
+      expect do
+        enum.validate!
+      end.to raise_error(Unibuf::ValidationError, /name required/)
     end
 
     it "requires at least one value" do
       enum = described_class.new(name: "Empty", values: {})
 
       expect(enum.valid?).to be false
-      expect { enum.validate! }.to raise_error(Unibuf::ValidationError, /at least one value/)
+      expect do
+        enum.validate!
+      end.to raise_error(Unibuf::ValidationError, /at least one value/)
     end
 
     it "detects duplicate ordinals" do
       enum = described_class.new(
         name: "Test",
-        values: { "a" => 0, "b" => 0 }
+        values: { "a" => 0, "b" => 0 },
       )
 
       expect(enum.valid?).to be false
-      expect { enum.validate! }.to raise_error(Unibuf::ValidationError, /Duplicate ordinals/)
+      expect do
+        enum.validate!
+      end.to raise_error(Unibuf::ValidationError, /Duplicate ordinals/)
     end
 
     it "validates successfully" do
       enum = described_class.new(
         name: "Color",
-        values: { "red" => 0, "green" => 1 }
+        values: { "red" => 0, "green" => 1 },
       )
 
       expect(enum.valid?).to be true
@@ -84,7 +90,7 @@ RSpec.describe Unibuf::Models::Capnproto::EnumDefinition do
       enum = described_class.new(
         name: "Color",
         values: { "red" => 0 },
-        annotations: []
+        annotations: [],
       )
 
       hash = enum.to_h

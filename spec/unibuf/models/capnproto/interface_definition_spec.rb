@@ -11,7 +11,7 @@ RSpec.describe Unibuf::Models::Capnproto::InterfaceDefinition do
         name: "add",
         ordinal: 0,
         params: [],
-        results: []
+        results: [],
       )
       interface = described_class.new(name: "Calculator", methods: [method])
 
@@ -26,7 +26,7 @@ RSpec.describe Unibuf::Models::Capnproto::InterfaceDefinition do
         name: "add",
         ordinal: 0,
         params: [],
-        results: []
+        results: [],
       )
     end
 
@@ -35,7 +35,7 @@ RSpec.describe Unibuf::Models::Capnproto::InterfaceDefinition do
         name: "subtract",
         ordinal: 1,
         params: [],
-        results: []
+        results: [],
       )
     end
 
@@ -61,23 +61,33 @@ RSpec.describe Unibuf::Models::Capnproto::InterfaceDefinition do
       interface = described_class.new(methods: [])
 
       expect(interface.valid?).to be false
-      expect { interface.validate! }.to raise_error(Unibuf::ValidationError, /name required/)
+      expect do
+        interface.validate!
+      end.to raise_error(Unibuf::ValidationError, /name required/)
     end
 
     it "requires at least one method" do
       interface = described_class.new(name: "Empty", methods: [])
 
       expect(interface.valid?).to be false
-      expect { interface.validate! }.to raise_error(Unibuf::ValidationError, /at least one method/)
+      expect do
+        interface.validate!
+      end.to raise_error(Unibuf::ValidationError,
+                         /at least one method/)
     end
 
     it "detects duplicate ordinals" do
-      method1 = Unibuf::Models::Capnproto::MethodDefinition.new(name: "a", ordinal: 0, params: [], results: [])
-      method2 = Unibuf::Models::Capnproto::MethodDefinition.new(name: "b", ordinal: 0, params: [], results: [])
+      method1 = Unibuf::Models::Capnproto::MethodDefinition.new(name: "a",
+                                                                ordinal: 0, params: [], results: [])
+      method2 = Unibuf::Models::Capnproto::MethodDefinition.new(name: "b",
+                                                                ordinal: 0, params: [], results: [])
       interface = described_class.new(name: "Test", methods: [method1, method2])
 
       expect(interface.valid?).to be false
-      expect { interface.validate! }.to raise_error(Unibuf::ValidationError, /Duplicate ordinals/)
+      expect do
+        interface.validate!
+      end.to raise_error(Unibuf::ValidationError,
+                         /Duplicate ordinals/)
     end
   end
 end
@@ -89,7 +99,7 @@ RSpec.describe Unibuf::Models::Capnproto::MethodDefinition do
         name: "add",
         ordinal: 0,
         params: [{ name: "a", type: "Int32" }, { name: "b", type: "Int32" }],
-        results: [{ name: "result", type: "Int32" }]
+        results: [{ name: "result", type: "Int32" }],
       )
 
       expect(method.name).to eq("add")
@@ -105,7 +115,7 @@ RSpec.describe Unibuf::Models::Capnproto::MethodDefinition do
         name: "add",
         ordinal: 0,
         params: [{ name: "a", type: "Int32" }, { name: "b", type: "Int32" }],
-        results: [{ name: "result", type: "Int32" }]
+        results: [{ name: "result", type: "Int32" }],
       )
     end
 
@@ -122,7 +132,8 @@ RSpec.describe Unibuf::Models::Capnproto::MethodDefinition do
     end
 
     it "finds result by name" do
-      expect(method_def.find_result("result")).to eq({ name: "result", type: "Int32" })
+      expect(method_def.find_result("result")).to eq({ name: "result",
+                                                       type: "Int32" })
     end
   end
 
@@ -130,24 +141,31 @@ RSpec.describe Unibuf::Models::Capnproto::MethodDefinition do
     it "requires name" do
       method = described_class.new(ordinal: 0, params: [], results: [])
 
-      expect { method.validate! }.to raise_error(Unibuf::ValidationError, /name required/)
+      expect do
+        method.validate!
+      end.to raise_error(Unibuf::ValidationError, /name required/)
     end
 
     it "requires ordinal" do
       method = described_class.new(name: "test", params: [], results: [])
 
-      expect { method.validate! }.to raise_error(Unibuf::ValidationError, /ordinal required/)
+      expect do
+        method.validate!
+      end.to raise_error(Unibuf::ValidationError, /ordinal required/)
     end
 
     it "validates parameters have name and type" do
       method = described_class.new(
         name: "test",
         ordinal: 0,
-        params: [{ name: "a" }],  # missing type
-        results: []
+        params: [{ name: "a" }], # missing type
+        results: [],
       )
 
-      expect { method.validate! }.to raise_error(Unibuf::ValidationError, /must have name and type/)
+      expect do
+        method.validate!
+      end.to raise_error(Unibuf::ValidationError,
+                         /must have name and type/)
     end
   end
 end

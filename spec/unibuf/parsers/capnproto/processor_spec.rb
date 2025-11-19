@@ -110,7 +110,8 @@ RSpec.describe Unibuf::Parsers::Capnproto::Processor do
 
       expect(schema.enums.length).to eq(1)
       expect(schema.enums.first.name).to eq("Color")
-      expect(schema.enums.first.values).to eq({ "red" => 0, "green" => 1, "blue" => 2 })
+      expect(schema.enums.first.values).to eq({ "red" => 0, "green" => 1,
+                                                "blue" => 2 })
     end
   end
 

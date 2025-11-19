@@ -9,7 +9,9 @@ require "unibuf/parsers/capnproto/binary_parser"
 require "unibuf/serializers/capnproto/binary_serializer"
 
 RSpec.describe "Cap'n Proto Additional Coverage" do
-  let(:fixture_path) { File.join(__dir__, "../../../fixtures/addressbook.capnp") }
+  let(:fixture_path) do
+    File.join(__dir__, "../../../fixtures/addressbook.capnp")
+  end
   let(:schema) { Unibuf.parse_capnproto_schema(fixture_path) }
 
   describe "All primitive types" do
@@ -20,21 +22,33 @@ RSpec.describe "Cap'n Proto Additional Coverage" do
           Unibuf::Models::Capnproto::StructDefinition.new(
             name: "AllTypes",
             fields: [
-              Unibuf::Models::Capnproto::FieldDefinition.new(name: "i8", ordinal: 0, type: "Int8"),
-              Unibuf::Models::Capnproto::FieldDefinition.new(name: "u8", ordinal: 1, type: "UInt8"),
-              Unibuf::Models::Capnproto::FieldDefinition.new(name: "i16", ordinal: 2, type: "Int16"),
-              Unibuf::Models::Capnproto::FieldDefinition.new(name: "u16", ordinal: 3, type: "UInt16"),
-              Unibuf::Models::Capnproto::FieldDefinition.new(name: "i32", ordinal: 4, type: "Int32"),
-              Unibuf::Models::Capnproto::FieldDefinition.new(name: "u32", ordinal: 5, type: "UInt32"),
-              Unibuf::Models::Capnproto::FieldDefinition.new(name: "i64", ordinal: 6, type: "Int64"),
-              Unibuf::Models::Capnproto::FieldDefinition.new(name: "u64", ordinal: 7, type: "UInt64"),
-              Unibuf::Models::Capnproto::FieldDefinition.new(name: "f32", ordinal: 8, type: "Float32"),
-              Unibuf::Models::Capnproto::FieldDefinition.new(name: "f64", ordinal: 9, type: "Float64"),
-              Unibuf::Models::Capnproto::FieldDefinition.new(name: "bool", ordinal: 10, type: "Bool"),
-              Unibuf::Models::Capnproto::FieldDefinition.new(name: "void", ordinal: 11, type: "Void")
-            ]
-          )
-        ]
+              Unibuf::Models::Capnproto::FieldDefinition.new(name: "i8",
+                                                             ordinal: 0, type: "Int8"),
+              Unibuf::Models::Capnproto::FieldDefinition.new(name: "u8",
+                                                             ordinal: 1, type: "UInt8"),
+              Unibuf::Models::Capnproto::FieldDefinition.new(name: "i16",
+                                                             ordinal: 2, type: "Int16"),
+              Unibuf::Models::Capnproto::FieldDefinition.new(name: "u16",
+                                                             ordinal: 3, type: "UInt16"),
+              Unibuf::Models::Capnproto::FieldDefinition.new(name: "i32",
+                                                             ordinal: 4, type: "Int32"),
+              Unibuf::Models::Capnproto::FieldDefinition.new(name: "u32",
+                                                             ordinal: 5, type: "UInt32"),
+              Unibuf::Models::Capnproto::FieldDefinition.new(name: "i64",
+                                                             ordinal: 6, type: "Int64"),
+              Unibuf::Models::Capnproto::FieldDefinition.new(name: "u64",
+                                                             ordinal: 7, type: "UInt64"),
+              Unibuf::Models::Capnproto::FieldDefinition.new(name: "f32",
+                                                             ordinal: 8, type: "Float32"),
+              Unibuf::Models::Capnproto::FieldDefinition.new(name: "f64",
+                                                             ordinal: 9, type: "Float64"),
+              Unibuf::Models::Capnproto::FieldDefinition.new(name: "bool",
+                                                             ordinal: 10, type: "Bool"),
+              Unibuf::Models::Capnproto::FieldDefinition.new(name: "void",
+                                                             ordinal: 11, type: "Void"),
+            ],
+          ),
+        ],
       )
 
       data = {
@@ -67,10 +81,11 @@ RSpec.describe "Cap'n Proto Additional Coverage" do
           Unibuf::Models::Capnproto::StructDefinition.new(
             name: "Container",
             fields: [
-              Unibuf::Models::Capnproto::FieldDefinition.new(name: "data", ordinal: 0, type: "Data")
-            ]
-          )
-        ]
+              Unibuf::Models::Capnproto::FieldDefinition.new(name: "data",
+                                                             ordinal: 0, type: "Data"),
+            ],
+          ),
+        ],
       )
 
       binary_data = [0, 1, 2, 255].pack("C*")
@@ -94,16 +109,17 @@ RSpec.describe "Cap'n Proto Additional Coverage" do
           Unibuf::Models::Capnproto::StructDefinition.new(
             name: "Item",
             fields: [
-              Unibuf::Models::Capnproto::FieldDefinition.new(name: "status", ordinal: 0, type: "Status")
-            ]
-          )
+              Unibuf::Models::Capnproto::FieldDefinition.new(name: "status",
+                                                             ordinal: 0, type: "Status"),
+            ],
+          ),
         ],
         enums: [
           Unibuf::Models::Capnproto::EnumDefinition.new(
             name: "Status",
-            values: { "active" => 0, "inactive" => 1, "pending" => 2 }
-          )
-        ]
+            values: { "active" => 0, "inactive" => 1, "pending" => 2 },
+          ),
+        ],
       )
 
       data = { status: "active" }
@@ -124,16 +140,17 @@ RSpec.describe "Cap'n Proto Additional Coverage" do
           Unibuf::Models::Capnproto::StructDefinition.new(
             name: "Item",
             fields: [
-              Unibuf::Models::Capnproto::FieldDefinition.new(name: "status", ordinal: 0, type: "Status")
-            ]
-          )
+              Unibuf::Models::Capnproto::FieldDefinition.new(name: "status",
+                                                             ordinal: 0, type: "Status"),
+            ],
+          ),
         ],
         enums: [
           Unibuf::Models::Capnproto::EnumDefinition.new(
             name: "Status",
-            values: { "active" => 0, "inactive" => 1 }
-          )
-        ]
+            values: { "active" => 0, "inactive" => 1 },
+          ),
+        ],
       )
 
       data = { status: 1 }
@@ -153,8 +170,9 @@ RSpec.describe "Cap'n Proto Additional Coverage" do
       inner_struct = Unibuf::Models::Capnproto::StructDefinition.new(
         name: "Inner",
         fields: [
-          Unibuf::Models::Capnproto::FieldDefinition.new(name: "value", ordinal: 0, type: "UInt32")
-        ]
+          Unibuf::Models::Capnproto::FieldDefinition.new(name: "value",
+                                                         ordinal: 0, type: "UInt32"),
+        ],
       )
 
       test_schema = Unibuf::Models::Capnproto::Schema.new(
@@ -163,11 +181,12 @@ RSpec.describe "Cap'n Proto Additional Coverage" do
           Unibuf::Models::Capnproto::StructDefinition.new(
             name: "Outer",
             fields: [
-              Unibuf::Models::Capnproto::FieldDefinition.new(name: "inner", ordinal: 0, type: "Inner")
-            ]
+              Unibuf::Models::Capnproto::FieldDefinition.new(name: "inner",
+                                                             ordinal: 0, type: "Inner"),
+            ],
           ),
-          inner_struct
-        ]
+          inner_struct,
+        ],
       )
 
       data = { inner: { value: 42 } }
@@ -193,11 +212,11 @@ RSpec.describe "Cap'n Proto Additional Coverage" do
               Unibuf::Models::Capnproto::FieldDefinition.new(
                 name: "numbers",
                 ordinal: 0,
-                type: { generic: "List", element_type: "UInt32" }
-              )
-            ]
-          )
-        ]
+                type: { generic: "List", element_type: "UInt32" },
+              ),
+            ],
+          ),
+        ],
       )
 
       data = { numbers: [1, 2, 3, 4, 5] }
@@ -245,13 +264,17 @@ RSpec.describe "Cap'n Proto Additional Coverage" do
           Unibuf::Models::Capnproto::StructDefinition.new(
             name: "Mixed",
             fields: [
-              Unibuf::Models::Capnproto::FieldDefinition.new(name: "id", ordinal: 0, type: "UInt32"),
-              Unibuf::Models::Capnproto::FieldDefinition.new(name: "name", ordinal: 1, type: "Text"),
-              Unibuf::Models::Capnproto::FieldDefinition.new(name: "count", ordinal: 2, type: "Int32"),
-              Unibuf::Models::Capnproto::FieldDefinition.new(name: "email", ordinal: 3, type: "Text")
-            ]
-          )
-        ]
+              Unibuf::Models::Capnproto::FieldDefinition.new(name: "id",
+                                                             ordinal: 0, type: "UInt32"),
+              Unibuf::Models::Capnproto::FieldDefinition.new(name: "name",
+                                                             ordinal: 1, type: "Text"),
+              Unibuf::Models::Capnproto::FieldDefinition.new(name: "count",
+                                                             ordinal: 2, type: "Int32"),
+              Unibuf::Models::Capnproto::FieldDefinition.new(name: "email",
+                                                             ordinal: 3, type: "Text"),
+            ],
+          ),
+        ],
       )
 
       data = { id: 1, name: "Alice", count: 10, email: "alice@example.com" }

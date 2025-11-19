@@ -13,7 +13,7 @@ RSpec.describe "Cap'n Proto Comprehensive Coverage" do
         field = Unibuf::Models::Capnproto::FieldDefinition.new(
           name: "text",
           ordinal: 0,
-          type: "Text"
+          type: "Text",
         )
         union = described_class.new(fields: [field])
 
@@ -26,7 +26,7 @@ RSpec.describe "Cap'n Proto Comprehensive Coverage" do
         Unibuf::Models::Capnproto::FieldDefinition.new(
           name: "text",
           ordinal: 0,
-          type: "Text"
+          type: "Text",
         )
       end
 
@@ -34,7 +34,7 @@ RSpec.describe "Cap'n Proto Comprehensive Coverage" do
         Unibuf::Models::Capnproto::FieldDefinition.new(
           name: "number",
           ordinal: 1,
-          type: "Int32"
+          type: "Int32",
         )
       end
 
@@ -58,26 +58,35 @@ RSpec.describe "Cap'n Proto Comprehensive Coverage" do
         field = Unibuf::Models::Capnproto::FieldDefinition.new(
           name: "only",
           ordinal: 0,
-          type: "Text"
+          type: "Text",
         )
         union = described_class.new(fields: [field])
 
         expect(union.valid?).to be false
-        expect { union.validate! }.to raise_error(Unibuf::ValidationError, /at least two fields/)
+        expect do
+          union.validate!
+        end.to raise_error(Unibuf::ValidationError,
+                           /at least two fields/)
       end
 
       it "detects duplicate ordinals" do
-        field1 = Unibuf::Models::Capnproto::FieldDefinition.new(name: "a", ordinal: 0, type: "Text")
-        field2 = Unibuf::Models::Capnproto::FieldDefinition.new(name: "b", ordinal: 0, type: "Int32")
+        field1 = Unibuf::Models::Capnproto::FieldDefinition.new(name: "a",
+                                                                ordinal: 0, type: "Text")
+        field2 = Unibuf::Models::Capnproto::FieldDefinition.new(name: "b",
+                                                                ordinal: 0, type: "Int32")
         union = described_class.new(fields: [field1, field2])
 
         expect(union.valid?).to be false
-        expect { union.validate! }.to raise_error(Unibuf::ValidationError, /Duplicate ordinals/)
+        expect do
+          union.validate!
+        end.to raise_error(Unibuf::ValidationError, /Duplicate ordinals/)
       end
 
       it "validates successfully" do
-        field1 = Unibuf::Models::Capnproto::FieldDefinition.new(name: "text", ordinal: 0, type: "Text")
-        field2 = Unibuf::Models::Capnproto::FieldDefinition.new(name: "number", ordinal: 1, type: "Int32")
+        field1 = Unibuf::Models::Capnproto::FieldDefinition.new(name: "text",
+                                                                ordinal: 0, type: "Text")
+        field2 = Unibuf::Models::Capnproto::FieldDefinition.new(name: "number",
+                                                                ordinal: 1, type: "Int32")
         union = described_class.new(fields: [field1, field2])
 
         expect(union.valid?).to be true
@@ -87,7 +96,8 @@ RSpec.describe "Cap'n Proto Comprehensive Coverage" do
 
     describe "to_h" do
       it "serializes to hash" do
-        field = Unibuf::Models::Capnproto::FieldDefinition.new(name: "a", ordinal: 0, type: "Text")
+        field = Unibuf::Models::Capnproto::FieldDefinition.new(name: "a",
+                                                               ordinal: 0, type: "Text")
         union = described_class.new(fields: [field])
 
         hash = union.to_h
@@ -104,18 +114,21 @@ RSpec.describe "Cap'n Proto Comprehensive Coverage" do
           Unibuf::Models::Capnproto::StructDefinition.new(
             name: "Test",
             fields: [
-              Unibuf::Models::Capnproto::FieldDefinition.new(name: "id", ordinal: 0, type: "UInt32"),
-              Unibuf::Models::Capnproto::FieldDefinition.new(name: "name", ordinal: 1, type: "Text"),
-              Unibuf::Models::Capnproto::FieldDefinition.new(name: "data", ordinal: 2, type: "Data")
-            ]
-          )
+              Unibuf::Models::Capnproto::FieldDefinition.new(name: "id",
+                                                             ordinal: 0, type: "UInt32"),
+              Unibuf::Models::Capnproto::FieldDefinition.new(name: "name",
+                                                             ordinal: 1, type: "Text"),
+              Unibuf::Models::Capnproto::FieldDefinition.new(name: "data",
+                                                             ordinal: 2, type: "Data"),
+            ],
+          ),
         ],
         enums: [
           Unibuf::Models::Capnproto::EnumDefinition.new(
             name: "Status",
-            values: { "active" => 0, "inactive" => 1 }
-          )
-        ]
+            values: { "active" => 0, "inactive" => 1 },
+          ),
+        ],
       )
     end
 
@@ -135,9 +148,12 @@ RSpec.describe "Cap'n Proto Comprehensive Coverage" do
     end
 
     it "checks text_or_data_type" do
-      field_text = Unibuf::Models::Capnproto::FieldDefinition.new(name: "t", ordinal: 0, type: "Text")
-      field_data = Unibuf::Models::Capnproto::FieldDefinition.new(name: "d", ordinal: 1, type: "Data")
-      field_int = Unibuf::Models::Capnproto::FieldDefinition.new(name: "i", ordinal: 2, type: "Int32")
+      field_text = Unibuf::Models::Capnproto::FieldDefinition.new(name: "t",
+                                                                  ordinal: 0, type: "Text")
+      field_data = Unibuf::Models::Capnproto::FieldDefinition.new(name: "d",
+                                                                  ordinal: 1, type: "Data")
+      field_int = Unibuf::Models::Capnproto::FieldDefinition.new(name: "i",
+                                                                 ordinal: 2, type: "Int32")
 
       expect(parser.send(:text_or_data_type?, field_text)).to be true
       expect(parser.send(:text_or_data_type?, field_data)).to be true
@@ -153,14 +169,19 @@ RSpec.describe "Cap'n Proto Comprehensive Coverage" do
           Unibuf::Models::Capnproto::StructDefinition.new(
             name: "Test",
             fields: [
-              Unibuf::Models::Capnproto::FieldDefinition.new(name: "a", ordinal: 0, type: "UInt8"),
-              Unibuf::Models::Capnproto::FieldDefinition.new(name: "b", ordinal: 1, type: "UInt16"),
-              Unibuf::Models::Capnproto::FieldDefinition.new(name: "c", ordinal: 2, type: "UInt32"),
-              Unibuf::Models::Capnproto::FieldDefinition.new(name: "d", ordinal: 3, type: "UInt64"),
-              Unibuf::Models::Capnproto::FieldDefinition.new(name: "text", ordinal: 0, type: "Text")
-            ]
-          )
-        ]
+              Unibuf::Models::Capnproto::FieldDefinition.new(name: "a",
+                                                             ordinal: 0, type: "UInt8"),
+              Unibuf::Models::Capnproto::FieldDefinition.new(name: "b",
+                                                             ordinal: 1, type: "UInt16"),
+              Unibuf::Models::Capnproto::FieldDefinition.new(name: "c",
+                                                             ordinal: 2, type: "UInt32"),
+              Unibuf::Models::Capnproto::FieldDefinition.new(name: "d",
+                                                             ordinal: 3, type: "UInt64"),
+              Unibuf::Models::Capnproto::FieldDefinition.new(name: "text",
+                                                             ordinal: 0, type: "Text"),
+            ],
+          ),
+        ],
       )
     end
 
@@ -177,7 +198,7 @@ RSpec.describe "Cap'n Proto Comprehensive Coverage" do
       struct_def = schema.find_struct("Test")
       pointer_words = serializer.send(:calculate_pointer_words, struct_def)
 
-      expect(pointer_words).to eq(1)  # Only "text" is a pointer
+      expect(pointer_words).to eq(1) # Only "text" is a pointer
     end
 
     it "calculates list words for different element sizes" do
@@ -199,20 +220,22 @@ RSpec.describe "Cap'n Proto Comprehensive Coverage" do
       struct_def = schema.find_struct("Test")
       text_field = struct_def.find_field("text")
 
-      pointer_index = serializer.send(:get_pointer_index, text_field, struct_def)
+      pointer_index = serializer.send(:get_pointer_index, text_field,
+                                      struct_def)
       expect(pointer_index).to eq(0)
     end
   end
 
   describe "Additional type classifications" do
     it "classifies all primitive types correctly" do
-      types = %w[Void Bool Int8 Int16 Int32 Int64 UInt8 UInt16 UInt32 UInt64 Float32 Float64 AnyPointer]
+      types = %w[Void Bool Int8 Int16 Int32 Int64 UInt8 UInt16 UInt32 UInt64
+                 Float32 Float64 AnyPointer]
 
       types.each do |type|
         field = Unibuf::Models::Capnproto::FieldDefinition.new(
           name: "test",
           ordinal: 0,
-          type: type
+          type: type,
         )
         expect(field.primitive_type?).to be true
         expect(field.user_type?).to be false
@@ -224,7 +247,7 @@ RSpec.describe "Cap'n Proto Comprehensive Coverage" do
         field = Unibuf::Models::Capnproto::FieldDefinition.new(
           name: "test",
           ordinal: 0,
-          type: type
+          type: type,
         )
         expect(field.primitive_type?).to be false
         expect(field.user_type?).to be true
@@ -235,7 +258,7 @@ RSpec.describe "Cap'n Proto Comprehensive Coverage" do
       field = Unibuf::Models::Capnproto::FieldDefinition.new(
         name: "items",
         ordinal: 0,
-        type: { generic: "List", element_type: "UInt32" }
+        type: { generic: "List", element_type: "UInt32" },
       )
 
       expect(field.generic_type?).to be true
