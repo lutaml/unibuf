@@ -53,7 +53,7 @@ RSpec.describe "FlatBuffers Serialization Debug" do
     begin
       result = parser.parse(binary_data)
       puts "Parse successful: #{result.inspect}"
-    rescue => e
+    rescue StandardError => e
       puts "Parse failed: #{e.class} - #{e.message}"
       puts e.backtrace.first(5).join("\n")
     end

@@ -78,8 +78,6 @@ module Unibuf
           }.compact
         end
 
-        private
-
         SCALAR_TYPES = %w[
           byte ubyte short ushort int uint long ulong
           float double bool

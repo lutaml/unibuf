@@ -33,7 +33,11 @@ module Unibuf
 
         def validate!
           raise ValidationError, "Union name required" unless name
-          raise ValidationError, "Union must have at least one type" if types.empty?
+
+          if types.empty?
+            raise ValidationError,
+                  "Union must have at least one type"
+          end
 
           # Check for duplicate types
           if types.uniq.size != types.size

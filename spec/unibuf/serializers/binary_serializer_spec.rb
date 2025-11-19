@@ -88,22 +88,26 @@ RSpec.describe Unibuf::Serializers::BinarySerializer do
 
   describe "wire type detection" do
     it "identifies varint types" do
-      field_def = Unibuf::Models::FieldDefinition.new(name: "x", type: "int32", number: 1)
+      field_def = Unibuf::Models::FieldDefinition.new(name: "x", type: "int32",
+                                                      number: 1)
       expect(serializer.send(:wire_type_for_field, field_def)).to eq(0)
     end
 
     it "identifies 64-bit types" do
-      field_def = Unibuf::Models::FieldDefinition.new(name: "x", type: "fixed64", number: 1)
+      field_def = Unibuf::Models::FieldDefinition.new(name: "x",
+                                                      type: "fixed64", number: 1)
       expect(serializer.send(:wire_type_for_field, field_def)).to eq(1)
     end
 
     it "identifies length-delimited types" do
-      field_def = Unibuf::Models::FieldDefinition.new(name: "x", type: "string", number: 1)
+      field_def = Unibuf::Models::FieldDefinition.new(name: "x",
+                                                      type: "string", number: 1)
       expect(serializer.send(:wire_type_for_field, field_def)).to eq(2)
     end
 
     it "identifies 32-bit types" do
-      field_def = Unibuf::Models::FieldDefinition.new(name: "x", type: "fixed32", number: 1)
+      field_def = Unibuf::Models::FieldDefinition.new(name: "x",
+                                                      type: "fixed32", number: 1)
       expect(serializer.send(:wire_type_for_field, field_def)).to eq(5)
     end
   end
@@ -111,7 +115,8 @@ RSpec.describe Unibuf::Serializers::BinarySerializer do
   describe "field type serialization" do
     context "varint types" do
       it "serializes bool" do
-        field_def = Unibuf::Models::FieldDefinition.new(name: "flag", type: "bool", number: 1)
+        field_def = Unibuf::Models::FieldDefinition.new(name: "flag",
+                                                        type: "bool", number: 1)
         field = Unibuf::Models::Field.new(name: "flag", value: true)
 
         result = serializer.send(:encode_varint_value, field, field_def)
@@ -119,7 +124,8 @@ RSpec.describe Unibuf::Serializers::BinarySerializer do
       end
 
       it "serializes int32" do
-        field_def = Unibuf::Models::FieldDefinition.new(name: "num", type: "int32", number: 1)
+        field_def = Unibuf::Models::FieldDefinition.new(name: "num",
+                                                        type: "int32", number: 1)
         field = Unibuf::Models::Field.new(name: "num", value: 150)
 
         result = serializer.send(:encode_varint_value, field, field_def)
@@ -127,7 +133,8 @@ RSpec.describe Unibuf::Serializers::BinarySerializer do
       end
 
       it "serializes sint32 with zigzag" do
-        field_def = Unibuf::Models::FieldDefinition.new(name: "num", type: "sint32", number: 1)
+        field_def = Unibuf::Models::FieldDefinition.new(name: "num",
+                                                        type: "sint32", number: 1)
         field = Unibuf::Models::Field.new(name: "num", value: -1)
 
         result = serializer.send(:encode_varint_value, field, field_def)
@@ -138,7 +145,8 @@ RSpec.describe Unibuf::Serializers::BinarySerializer do
 
     context "64-bit types" do
       it "serializes fixed64" do
-        field_def = Unibuf::Models::FieldDefinition.new(name: "num", type: "fixed64", number: 1)
+        field_def = Unibuf::Models::FieldDefinition.new(name: "num",
+                                                        type: "fixed64", number: 1)
         field = Unibuf::Models::Field.new(name: "num", value: 12345)
 
         result = serializer.send(:encode_64bit_value, field, field_def)
@@ -146,7 +154,8 @@ RSpec.describe Unibuf::Serializers::BinarySerializer do
       end
 
       it "serializes double" do
-        field_def = Unibuf::Models::FieldDefinition.new(name: "num", type: "double", number: 1)
+        field_def = Unibuf::Models::FieldDefinition.new(name: "num",
+                                                        type: "double", number: 1)
         field = Unibuf::Models::Field.new(name: "num", value: 3.14)
 
         result = serializer.send(:encode_64bit_value, field, field_def)
@@ -156,7 +165,8 @@ RSpec.describe Unibuf::Serializers::BinarySerializer do
 
     context "32-bit types" do
       it "serializes fixed32" do
-        field_def = Unibuf::Models::FieldDefinition.new(name: "num", type: "fixed32", number: 1)
+        field_def = Unibuf::Models::FieldDefinition.new(name: "num",
+                                                        type: "fixed32", number: 1)
         field = Unibuf::Models::Field.new(name: "num", value: 12345)
 
         result = serializer.send(:encode_32bit_value, field, field_def)
@@ -164,7 +174,8 @@ RSpec.describe Unibuf::Serializers::BinarySerializer do
       end
 
       it "serializes float" do
-        field_def = Unibuf::Models::FieldDefinition.new(name: "num", type: "float", number: 1)
+        field_def = Unibuf::Models::FieldDefinition.new(name: "num",
+                                                        type: "float", number: 1)
         field = Unibuf::Models::Field.new(name: "num", value: 3.14)
 
         result = serializer.send(:encode_32bit_value, field, field_def)
@@ -174,20 +185,24 @@ RSpec.describe Unibuf::Serializers::BinarySerializer do
 
     context "length-delimited types" do
       it "serializes string" do
-        field_def = Unibuf::Models::FieldDefinition.new(name: "text", type: "string", number: 1)
+        field_def = Unibuf::Models::FieldDefinition.new(name: "text",
+                                                        type: "string", number: 1)
         field = Unibuf::Models::Field.new(name: "text", value: "hello")
 
-        result = serializer.send(:encode_length_delimited_value, field, field_def)
+        result = serializer.send(:encode_length_delimited_value, field,
+                                 field_def)
         # Length prefix (5) + "hello"
         expect(result.bytes[0]).to eq(5)
         expect(result[1..]).to eq("hello")
       end
 
       it "serializes bytes" do
-        field_def = Unibuf::Models::FieldDefinition.new(name: "data", type: "bytes", number: 1)
+        field_def = Unibuf::Models::FieldDefinition.new(name: "data",
+                                                        type: "bytes", number: 1)
         field = Unibuf::Models::Field.new(name: "data", value: "\x01\x02\x03".b)
 
-        result = serializer.send(:encode_length_delimited_value, field, field_def)
+        result = serializer.send(:encode_length_delimited_value, field,
+                                 field_def)
         expect(result.bytes[0]).to eq(3)
         expect(result[1..].bytes).to eq([0x01, 0x02, 0x03])
       end
@@ -217,7 +232,7 @@ RSpec.describe Unibuf::Serializers::BinarySerializer do
         ],
       )
 
-      result = Unibuf::Serializers::BinarySerializer.new(string_field_schema)
+      result = described_class.new(string_field_schema)
         .serialize(message)
 
       expect(result).not_to be_empty
@@ -261,7 +276,7 @@ RSpec.describe Unibuf::Serializers::BinarySerializer do
       )
 
       # Serialize
-      serializer_instance = Unibuf::Serializers::BinarySerializer.new(int_schema)
+      serializer_instance = described_class.new(int_schema)
       binary_data = serializer_instance.serialize(original_message)
 
       # Parse back
@@ -295,7 +310,7 @@ RSpec.describe Unibuf::Serializers::BinarySerializer do
       )
 
       # Serialize
-      serializer_instance = Unibuf::Serializers::BinarySerializer.new(string_schema)
+      serializer_instance = described_class.new(string_schema)
       binary_data = serializer_instance.serialize(original_message)
 
       # Parse back
@@ -356,7 +371,7 @@ RSpec.describe Unibuf::Serializers::BinarySerializer do
         ],
       )
 
-      serializer_instance = Unibuf::Serializers::BinarySerializer.new(nested_schema)
+      serializer_instance = described_class.new(nested_schema)
       result = serializer_instance.serialize(message, message_type: "Person")
 
       expect(result).not_to be_empty
@@ -379,8 +394,9 @@ RSpec.describe Unibuf::Serializers::BinarySerializer do
       )
 
       # Serialize
-      serializer_instance = Unibuf::Serializers::BinarySerializer.new(nested_schema)
-      binary_data = serializer_instance.serialize(original_message, message_type: "Person")
+      serializer_instance = described_class.new(nested_schema)
+      binary_data = serializer_instance.serialize(original_message,
+                                                  message_type: "Person")
 
       # Parse back
       parser = Unibuf::Parsers::Binary::WireFormatParser.new(nested_schema)

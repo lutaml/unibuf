@@ -106,12 +106,18 @@ RSpec.describe Unibuf::Serializers::Flatbuffers::BinarySerializer do
       table_def = Unibuf::Models::Flatbuffers::TableDefinition.new(
         name: "Test",
         fields: [
-          Unibuf::Models::Flatbuffers::FieldDefinition.new(name: "byte_val", type: "byte"),
-          Unibuf::Models::Flatbuffers::FieldDefinition.new(name: "ubyte_val", type: "ubyte"),
-          Unibuf::Models::Flatbuffers::FieldDefinition.new(name: "short_val", type: "short"),
-          Unibuf::Models::Flatbuffers::FieldDefinition.new(name: "int_val", type: "int"),
-          Unibuf::Models::Flatbuffers::FieldDefinition.new(name: "float_val", type: "float"),
-          Unibuf::Models::Flatbuffers::FieldDefinition.new(name: "bool_val", type: "bool"),
+          Unibuf::Models::Flatbuffers::FieldDefinition.new(name: "byte_val",
+                                                           type: "byte"),
+          Unibuf::Models::Flatbuffers::FieldDefinition.new(name: "ubyte_val",
+                                                           type: "ubyte"),
+          Unibuf::Models::Flatbuffers::FieldDefinition.new(name: "short_val",
+                                                           type: "short"),
+          Unibuf::Models::Flatbuffers::FieldDefinition.new(name: "int_val",
+                                                           type: "int"),
+          Unibuf::Models::Flatbuffers::FieldDefinition.new(name: "float_val",
+                                                           type: "float"),
+          Unibuf::Models::Flatbuffers::FieldDefinition.new(name: "bool_val",
+                                                           type: "bool"),
         ],
       )
 
@@ -142,7 +148,7 @@ RSpec.describe Unibuf::Serializers::Flatbuffers::BinarySerializer do
       expect(parsed_data["short_val"]).to eq(-1000)
       expect(parsed_data["int_val"]).to eq(500000)
       expect(parsed_data["float_val"]).to be_within(0.01).of(3.14)
-      expect(parsed_data["bool_val"]).to eq(true)
+      expect(parsed_data["bool_val"]).to be(true)
     end
   end
 

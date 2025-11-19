@@ -49,7 +49,11 @@ module Unibuf
 
         def validate!
           raise ValidationError, "Table name required" unless name
-          raise ValidationError, "Table must have at least one field" if fields.empty?
+
+          if fields.empty?
+            raise ValidationError,
+                  "Table must have at least one field"
+          end
 
           fields.each(&:validate!)
 

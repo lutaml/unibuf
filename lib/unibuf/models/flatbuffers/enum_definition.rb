@@ -41,7 +41,11 @@ module Unibuf
 
         def validate!
           raise ValidationError, "Enum name required" unless name
-          raise ValidationError, "Enum must have at least one value" if values.empty?
+
+          if values.empty?
+            raise ValidationError,
+                  "Enum must have at least one value"
+          end
 
           # Check for duplicate values
           if values.values.uniq.size != values.values.size

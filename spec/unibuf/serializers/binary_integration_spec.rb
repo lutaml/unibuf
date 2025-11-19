@@ -12,9 +12,12 @@ RSpec.describe "Binary Serialization Integration" do
         Unibuf::Models::MessageDefinition.new(
           name: "Person",
           fields: [
-            Unibuf::Models::FieldDefinition.new(name: "name", type: "string", number: 1),
-            Unibuf::Models::FieldDefinition.new(name: "age", type: "int32", number: 2),
-            Unibuf::Models::FieldDefinition.new(name: "active", type: "bool", number: 3),
+            Unibuf::Models::FieldDefinition.new(name: "name", type: "string",
+                                                number: 1),
+            Unibuf::Models::FieldDefinition.new(name: "age", type: "int32",
+                                                number: 2),
+            Unibuf::Models::FieldDefinition.new(name: "active", type: "bool",
+                                                number: 3),
           ],
         ),
       ],
@@ -27,16 +30,21 @@ RSpec.describe "Binary Serialization Integration" do
         Unibuf::Models::MessageDefinition.new(
           name: "Address",
           fields: [
-            Unibuf::Models::FieldDefinition.new(name: "street", type: "string", number: 1),
-            Unibuf::Models::FieldDefinition.new(name: "city", type: "string", number: 2),
-            Unibuf::Models::FieldDefinition.new(name: "zip", type: "int32", number: 3),
+            Unibuf::Models::FieldDefinition.new(name: "street", type: "string",
+                                                number: 1),
+            Unibuf::Models::FieldDefinition.new(name: "city", type: "string",
+                                                number: 2),
+            Unibuf::Models::FieldDefinition.new(name: "zip", type: "int32",
+                                                number: 3),
           ],
         ),
         Unibuf::Models::MessageDefinition.new(
           name: "Person",
           fields: [
-            Unibuf::Models::FieldDefinition.new(name: "name", type: "string", number: 1),
-            Unibuf::Models::FieldDefinition.new(name: "address", type: "Address", number: 2),
+            Unibuf::Models::FieldDefinition.new(name: "name", type: "string",
+                                                number: 1),
+            Unibuf::Models::FieldDefinition.new(name: "address",
+                                                type: "Address", number: 2),
           ],
         ),
       ],
@@ -65,7 +73,7 @@ RSpec.describe "Binary Serialization Integration" do
       # Verify fields match
       expect(parsed.find_field("name").value).to eq("Alice")
       expect(parsed.find_field("age").value).to eq(30)
-      expect(parsed.find_field("active").value).to eq(true)
+      expect(parsed.find_field("active").value).to be(true)
     end
 
     it "preserves nested message data" do
@@ -141,7 +149,8 @@ RSpec.describe "Binary Serialization Integration" do
       )
 
       # Use Message#to_binary
-      binary_data = message.to_binary(schema: simple_schema, message_type: "Person")
+      binary_data = message.to_binary(schema: simple_schema,
+                                      message_type: "Person")
 
       # Verify it's valid binary
       expect(binary_data).to be_a(String)
@@ -164,11 +173,16 @@ RSpec.describe "Binary Serialization Integration" do
           Unibuf::Models::MessageDefinition.new(
             name: "DataTypes",
             fields: [
-              Unibuf::Models::FieldDefinition.new(name: "int_val", type: "int32", number: 1),
-              Unibuf::Models::FieldDefinition.new(name: "sint_val", type: "sint32", number: 2),
-              Unibuf::Models::FieldDefinition.new(name: "bool_val", type: "bool", number: 3),
-              Unibuf::Models::FieldDefinition.new(name: "string_val", type: "string", number: 4),
-              Unibuf::Models::FieldDefinition.new(name: "bytes_val", type: "bytes", number: 5),
+              Unibuf::Models::FieldDefinition.new(name: "int_val",
+                                                  type: "int32", number: 1),
+              Unibuf::Models::FieldDefinition.new(name: "sint_val",
+                                                  type: "sint32", number: 2),
+              Unibuf::Models::FieldDefinition.new(name: "bool_val",
+                                                  type: "bool", number: 3),
+              Unibuf::Models::FieldDefinition.new(name: "string_val",
+                                                  type: "string", number: 4),
+              Unibuf::Models::FieldDefinition.new(name: "bytes_val",
+                                                  type: "bytes", number: 5),
             ],
           ),
         ],
@@ -197,9 +211,10 @@ RSpec.describe "Binary Serialization Integration" do
       # Verify all fields
       expect(parsed.find_field("int_val").value).to eq(12345)
       expect(parsed.find_field("sint_val").value).to eq(-999)
-      expect(parsed.find_field("bool_val").value).to eq(true)
+      expect(parsed.find_field("bool_val").value).to be(true)
       expect(parsed.find_field("string_val").value).to eq("Test String!")
-      expect(parsed.find_field("bytes_val").value.bytes).to eq([0x01, 0x02, 0x03, 0x04])
+      expect(parsed.find_field("bytes_val").value.bytes).to eq([0x01, 0x02,
+                                                                0x03, 0x04])
     end
   end
 
