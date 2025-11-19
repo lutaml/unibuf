@@ -28,11 +28,18 @@ module Unibuf
         # @return [Models::Message] Parsed message
         def parse(binary_data, message_type: nil)
           raise ArgumentError, "Binary data cannot be nil" if binary_data.nil?
-          raise ArgumentError, "Binary data cannot be empty" if binary_data.empty?
+
+          if binary_data.empty?
+            raise ArgumentError,
+                  "Binary data cannot be empty"
+          end
 
           # Find message definition
           msg_def = find_message_definition(message_type)
-          raise ArgumentError, "Message type required or schema must have exactly one message" unless msg_def
+          unless msg_def
+            raise ArgumentError,
+                  "Message type required or schema must have exactly one message"
+          end
 
           begin
             # Parse fields from binary
@@ -78,7 +85,7 @@ module Unibuf
 
               fields << {
                 "name" => field_def.name,
-                "value" => value
+                "value" => value,
               }
             rescue EOFError => e
               raise ParseError, "Incomplete field data: #{e.message}"
@@ -122,7 +129,10 @@ module Unibuf
 
         def parse_64bit_value(io, field_def)
           bytes = io.read(8)
-          raise ParseError, "Unexpected EOF reading 64-bit value" unless bytes && bytes.bytesize == 8
+          unless bytes && bytes.bytesize == 8
+            raise ParseError,
+                  "Unexpected EOF reading 64-bit value"
+          end
 
           case field_def.type
           when "fixed64"
@@ -138,7 +148,10 @@ module Unibuf
 
         def parse_32bit_value(io, field_def)
           bytes = io.read(4)
-          raise ParseError, "Unexpected EOF reading 32-bit value" unless bytes && bytes.bytesize == 4
+          unless bytes && bytes.bytesize == 4
+            raise ParseError,
+                  "Unexpected EOF reading 32-bit value"
+          end
 
           case field_def.type
           when "fixed32"
@@ -155,7 +168,10 @@ module Unibuf
         def parse_length_delimited_value(io, field_def)
           length = read_varint(io)
           bytes = io.read(length)
-          raise ParseError, "Unexpected EOF reading length-delimited value" unless bytes && bytes.bytesize == length
+          unless bytes && bytes.bytesize == length
+            raise ParseError,
+                  "Unexpected EOF reading length-delimited value"
+          end
 
           case field_def.type
           when "string"
@@ -182,7 +198,7 @@ module Unibuf
           loop do
             byte = io.readbyte
             result |= (byte & 0x7F) << shift
-            break if (byte & 0x80).zero?
+            break if byte.nobits?(0x80)
 
             shift += 7
             raise ParseError, "Varint too long" if shift >= 64

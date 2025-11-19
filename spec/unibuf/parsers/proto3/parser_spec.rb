@@ -7,7 +7,9 @@ RSpec.describe "Proto3 Parser Integration" do
   let(:proto3_processor) { Unibuf::Parsers::Proto3::Processor }
 
   describe "parsing metadata.proto" do
-    let(:schema_path) { File.expand_path("../../../fixtures/metadata.proto", __dir__) }
+    let(:schema_path) do
+      File.expand_path("../../../fixtures/metadata.proto", __dir__)
+    end
 
     it "parses the schema file" do
       skip "Schema file not found" unless File.exist?(schema_path)
@@ -77,7 +79,9 @@ RSpec.describe "Proto3 Parser Integration" do
   end
 
   describe "Unibuf.parse_schema" do
-    let(:schema_path) { File.expand_path("../../../fixtures/metadata.proto", __dir__) }
+    let(:schema_path) do
+      File.expand_path("../../../fixtures/metadata.proto", __dir__)
+    end
 
     it "provides high-level API" do
       skip "Schema file not found" unless File.exist?(schema_path)

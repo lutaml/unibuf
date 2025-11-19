@@ -6,55 +6,73 @@ RSpec.describe Unibuf::Validators::TypeValidator do
   describe "field validation" do
     it "validates string fields" do
       field = Unibuf::Models::Field.new("name" => "test", "value" => "hello")
-      expect { described_class.validate_field(field, :string) }.not_to raise_error
+      expect do
+        described_class.validate_field(field, :string)
+      end.not_to raise_error
     end
 
     it "validates int32 fields" do
       field = Unibuf::Models::Field.new("name" => "count", "value" => 42)
-      expect { described_class.validate_field(field, :int32) }.not_to raise_error
+      expect do
+        described_class.validate_field(field, :int32)
+      end.not_to raise_error
     end
 
     it "validates int32 range" do
-      field = Unibuf::Models::Field.new("name" => "max", "value" => 2**31 - 1)
-      expect { described_class.validate_field(field, :int32) }.not_to raise_error
+      field = Unibuf::Models::Field.new("name" => "max", "value" => (2**31) - 1)
+      expect do
+        described_class.validate_field(field, :int32)
+      end.not_to raise_error
 
       field = Unibuf::Models::Field.new("name" => "min", "value" => -2**31)
-      expect { described_class.validate_field(field, :int32) }.not_to raise_error
+      expect do
+        described_class.validate_field(field, :int32)
+      end.not_to raise_error
     end
 
     it "rejects int32 out of range" do
       field = Unibuf::Models::Field.new("name" => "too_big", "value" => 2**31)
-      expect {
+      expect do
         described_class.validate_field(field, :int32)
-      }.to raise_error(Unibuf::TypeValidationError, /out of range/)
+      end.to raise_error(Unibuf::TypeValidationError, /out of range/)
     end
 
     it "validates uint32 fields" do
       field = Unibuf::Models::Field.new("name" => "count", "value" => 42)
-      expect { described_class.validate_field(field, :uint32) }.not_to raise_error
+      expect do
+        described_class.validate_field(field, :uint32)
+      end.not_to raise_error
     end
 
     it "validates uint32 range" do
-      field = Unibuf::Models::Field.new("name" => "max", "value" => 2**32 - 1)
-      expect { described_class.validate_field(field, :uint32) }.not_to raise_error
+      field = Unibuf::Models::Field.new("name" => "max", "value" => (2**32) - 1)
+      expect do
+        described_class.validate_field(field, :uint32)
+      end.not_to raise_error
 
       field = Unibuf::Models::Field.new("name" => "zero", "value" => 0)
-      expect { described_class.validate_field(field, :uint32) }.not_to raise_error
+      expect do
+        described_class.validate_field(field, :uint32)
+      end.not_to raise_error
     end
 
     it "rejects negative uint32" do
       field = Unibuf::Models::Field.new("name" => "negative", "value" => -1)
-      expect {
+      expect do
         described_class.validate_field(field, :uint32)
-      }.to raise_error(Unibuf::TypeValidationError, /out of range/)
+      end.to raise_error(Unibuf::TypeValidationError, /out of range/)
     end
 
     it "validates float fields" do
       field = Unibuf::Models::Field.new("name" => "pi", "value" => 3.14)
-      expect { described_class.validate_field(field, :float) }.not_to raise_error
+      expect do
+        described_class.validate_field(field, :float)
+      end.not_to raise_error
 
       field = Unibuf::Models::Field.new("name" => "int", "value" => 42)
-      expect { described_class.validate_field(field, :float) }.not_to raise_error
+      expect do
+        described_class.validate_field(field, :float)
+      end.not_to raise_error
     end
 
     it "validates bool fields" do
@@ -67,21 +85,23 @@ RSpec.describe Unibuf::Validators::TypeValidator do
 
     it "rejects wrong types" do
       field = Unibuf::Models::Field.new("name" => "test", "value" => "string")
-      expect {
+      expect do
         described_class.validate_field(field, :int32)
-      }.to raise_error(Unibuf::TypeValidationError)
+      end.to raise_error(Unibuf::TypeValidationError)
     end
 
     it "allows nil for optional fields" do
       field = Unibuf::Models::Field.new("name" => "optional", "value" => nil)
-      expect { described_class.validate_field(field, :string) }.not_to raise_error
+      expect do
+        described_class.validate_field(field, :string)
+      end.not_to raise_error
     end
 
     it "raises on unknown type" do
       field = Unibuf::Models::Field.new("name" => "test", "value" => "val")
-      expect {
+      expect do
         described_class.validate_field(field, :unknown_type)
-      }.to raise_error(Unibuf::TypeValidationError, /Unknown type/)
+      end.to raise_error(Unibuf::TypeValidationError, /Unknown type/)
     end
   end
 
@@ -90,13 +110,13 @@ RSpec.describe Unibuf::Validators::TypeValidator do
       message = Unibuf::Models::Message.new(
         "fields" => [
           { "name" => "name", "value" => "test" },
-          { "name" => "count", "value" => 42 }
-        ]
+          { "name" => "count", "value" => 42 },
+        ],
       )
 
       schema = {
         "name" => :string,
-        "count" => :int32
+        "count" => :int32,
       }
 
       errors = described_class.validate_message(message, schema)
@@ -106,8 +126,8 @@ RSpec.describe Unibuf::Validators::TypeValidator do
     it "reports type errors" do
       message = Unibuf::Models::Message.new(
         "fields" => [
-          { "name" => "count", "value" => "not a number" }
-        ]
+          { "name" => "count", "value" => "not a number" },
+        ],
       )
 
       schema = { "count" => :int32 }
@@ -119,8 +139,8 @@ RSpec.describe Unibuf::Validators::TypeValidator do
     it "skips fields not in schema" do
       message = Unibuf::Models::Message.new(
         "fields" => [
-          { "name" => "unknown", "value" => "test" }
-        ]
+          { "name" => "unknown", "value" => "test" },
+        ],
       )
 
       errors = described_class.validate_message(message, {})

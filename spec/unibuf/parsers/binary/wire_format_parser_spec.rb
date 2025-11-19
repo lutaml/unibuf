@@ -7,16 +7,16 @@ RSpec.describe Unibuf::Parsers::Binary::WireFormatParser do
     field_def = Unibuf::Models::FieldDefinition.new(
       name: "test",
       type: "string",
-      number: 1
+      number: 1,
     )
 
     msg_def = Unibuf::Models::MessageDefinition.new(
       name: "TestMessage",
-      fields: [field_def]
+      fields: [field_def],
     )
 
     Unibuf::Models::Schema.new(
-      messages: [msg_def]
+      messages: [msg_def],
     )
   end
 
@@ -66,21 +66,21 @@ RSpec.describe Unibuf::Parsers::Binary::WireFormatParser do
 
   describe "parsing with schema" do
     it "requires message type or single message schema" do
-      expect {
+      expect do
         parser.parse("\x00")
-      }.not_to raise_error
+      end.not_to raise_error
     end
 
     it "raises on nil data" do
-      expect {
+      expect do
         parser.parse(nil)
-      }.to raise_error(ArgumentError, /nil/)
+      end.to raise_error(ArgumentError, /nil/)
     end
 
     it "raises on empty data" do
-      expect {
+      expect do
         parser.parse("")
-      }.to raise_error(ArgumentError, /empty/)
+      end.to raise_error(ArgumentError, /empty/)
     end
   end
 
@@ -95,9 +95,9 @@ RSpec.describe Unibuf::Parsers::Binary::WireFormatParser do
 
   describe "error handling" do
     it "handles malformed data gracefully" do
-      expect {
+      expect do
         parser.parse("\xFF\xFF\xFF")
-      }.to raise_error(Unibuf::ParseError)
+      end.to raise_error(Unibuf::ParseError)
     end
   end
 end

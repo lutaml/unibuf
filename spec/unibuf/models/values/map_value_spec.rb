@@ -83,9 +83,9 @@ RSpec.describe Unibuf::Models::Values::MapValue do
 
   describe "validation" do
     it "validates hash with key and value" do
-      expect {
+      expect do
         described_class.new("key" => "k", "value" => "v")
-      }.not_to raise_error
+      end.not_to raise_error
     end
 
     it "rejects non-hash" do
@@ -94,15 +94,15 @@ RSpec.describe Unibuf::Models::Values::MapValue do
     end
 
     it "rejects hash without key" do
-      expect {
+      expect do
         described_class.new("value" => "v")
-      }.to raise_error(Unibuf::InvalidValueError, /key/)
+      end.to raise_error(Unibuf::InvalidValueError, /key/)
     end
 
     it "rejects hash without value" do
-      expect {
+      expect do
         described_class.new("key" => "k")
-      }.to raise_error(Unibuf::InvalidValueError, /value/)
+      end.to raise_error(Unibuf::InvalidValueError, /value/)
     end
   end
 

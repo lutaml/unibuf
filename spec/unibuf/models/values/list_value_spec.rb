@@ -39,8 +39,7 @@ RSpec.describe Unibuf::Models::Values::ListValue do
     end
 
     it "supports each iteration" do
-      result = []
-      list.each { |item| result << item }
+      result = list.map { |item| item }
       expect(result).to eq([1, 2, 3, 4, 5])
     end
 
@@ -50,7 +49,7 @@ RSpec.describe Unibuf::Models::Values::ListValue do
     end
 
     it "supports select" do
-      result = list.select { |item| item.even? }
+      result = list.select(&:even?)
       expect(result).to eq([2, 4])
     end
   end
@@ -78,9 +77,9 @@ RSpec.describe Unibuf::Models::Values::ListValue do
 
     it "detects all messages" do
       list = described_class.new([
-        { "fields" => [] },
-        { "fields" => [] }
-      ])
+                                   { "fields" => [] },
+                                   { "fields" => [] },
+                                 ])
       expect(list.all_messages?).to be true
     end
 

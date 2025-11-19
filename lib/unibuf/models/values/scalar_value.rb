@@ -59,9 +59,10 @@ module Unibuf
           return true if string? && %w[true t 1].include?(raw_value.downcase)
           return false if string? && %w[false f 0].include?(raw_value.downcase)
           return true if integer? && raw_value == 1
-          return false if integer? && raw_value == 0
+          return false if integer? && raw_value.zero?
 
-          raise TypeCoercionError, "Cannot convert #{raw_value.class} to Boolean"
+          raise TypeCoercionError,
+                "Cannot convert #{raw_value.class} to Boolean"
         end
 
         # Serialization
