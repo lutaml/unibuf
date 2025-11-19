@@ -114,14 +114,12 @@ module Unibuf
             File.write(output_file, content)
           end
           puts "Output written to #{output_file}" if verbose?
+        elsif target_format == "binpb"
+          $stdout.binmode
+          $stdout.write(content)
+        # Binary output to stdout
         else
-          if target_format == "binpb"
-            # Binary output to stdout
-            $stdout.binmode
-            $stdout.write(content)
-          else
-            puts content
-          end
+          puts content
         end
       end
 
@@ -150,7 +148,7 @@ module Unibuf
       end
 
       def binary_file?(file)
-        file.end_with?(".binpb", ".bin") || file.end_with?(".pb")
+        file.end_with?(".binpb", ".bin", ".pb")
       end
 
       def target_format

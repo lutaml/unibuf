@@ -68,7 +68,11 @@ module Unibuf
 
         def validate!
           raise ValidationError, "Root type required" unless root_type
-          raise ValidationError, "Root type '#{root_type}' not found" unless find_table(root_type)
+
+          unless find_table(root_type)
+            raise ValidationError,
+                  "Root type '#{root_type}' not found"
+          end
 
           tables.each(&:validate!)
           structs.each(&:validate!)

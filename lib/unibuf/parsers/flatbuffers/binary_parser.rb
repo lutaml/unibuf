@@ -94,7 +94,7 @@ module Unibuf
           field_offsets = []
 
           field_count.times do |i|
-            offset = read_uint16(pos + 4 +(i * 2))
+            offset = read_uint16(pos + 4 + (i * 2))
             field_offsets << offset
           end
 
@@ -196,14 +196,15 @@ module Unibuf
         def read_user_type(pos, field_def)
           type_def = schema.find_type(field_def.type)
 
-          if type_def.is_a?(Models::Flatbuffers::TableDefinition)
+          case type_def
+          when Models::Flatbuffers::TableDefinition
             # Table: read via offset
             offset = read_uoffset32(pos)
             read_table(pos + offset, type_def)
-          elsif type_def.is_a?(Models::Flatbuffers::StructDefinition)
+          when Models::Flatbuffers::StructDefinition
             # Struct: read inline
             read_struct(pos, type_def)
-          elsif type_def.is_a?(Models::Flatbuffers::EnumDefinition)
+          when Models::Flatbuffers::EnumDefinition
             # Enum: read as integer
             value = read_scalar(pos, type_def.type)
             type_def.find_name_by_value(value) || value

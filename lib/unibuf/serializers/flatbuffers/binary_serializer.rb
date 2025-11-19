@@ -21,16 +21,16 @@ module Unibuf
           end
 
           # Manual buffer construction
-          parts = []
+          []
 
           # Serialize table and collect parts
           table_parts = serialize_table(data, root_table_def)
 
           # Calculate positions
-          root_offset = 4  # After root offset itself
+          root_offset = 4 # After root offset itself
 
           # Build final buffer
-          buffer = [root_offset].pack("L<")  # Root offset
+          buffer = [root_offset].pack("L<") # Root offset
           buffer += table_parts.pack("C*")
 
           buffer
@@ -53,9 +53,9 @@ module Unibuf
 
             # Serialize string
             str_bytes = []
-            str_bytes.concat([value.bytesize].pack("L<").bytes)  # length
-            str_bytes.concat(value.bytes)  # content
-            str_bytes << 0  # null terminator
+            str_bytes.concat([value.bytesize].pack("L<").bytes) # length
+            str_bytes.concat(value.bytes) # content
+            str_bytes << 0 # null terminator
 
             # Align to 4
             while (str_bytes.size % 4) != 0
@@ -64,7 +64,7 @@ module Unibuf
 
             string_data[field_def.name] = {
               bytes: str_bytes,
-              start_in_string_section: string_bytes_total.size
+              start_in_string_section: string_bytes_total.size,
             }
             string_bytes_total.concat(str_bytes)
           end
@@ -73,14 +73,14 @@ module Unibuf
           table_bytes = []
 
           # Reserve vtable offset
-          table_bytes.concat([0, 0, 0, 0])
+          table_bytes.push(0, 0, 0, 0)
 
           # Calculate vtable size
           vtable_size = 4 + (table_def.fields.size * 2)
 
           # Write fields
           field_offsets = []
-          current_pos = 4  # Start after vtable offset
+          current_pos = 4 # Start after vtable offset
 
           table_def.fields.each do |field_def|
             value = data[field_def.name]
@@ -95,7 +95,11 @@ module Unibuf
                 table_bytes.concat([value].pack("c").bytes)
                 current_pos += 1
               when "ubyte", "bool"
-                val = value.is_a?(TrueClass) ? 1 : (value.is_a?(FalseClass) ? 0 : value)
+                val = if value.is_a?(TrueClass)
+                        1
+                      else
+                        (value.is_a?(FalseClass) ? 0 : value)
+                      end
                 table_bytes << (val & 0xFF)
                 current_pos += 1
               when "short"
@@ -128,7 +132,7 @@ module Unibuf
               # Calculate uoffset from current field position to string
               # String will be at: 4 (root) + table_size + vtable_size + string_start
               str_info = string_data[field_def.name]
-              table_size = table_bytes.size + 4  # +4 for remaining field
+              table_size = table_bytes.size + 4 # +4 for remaining field
               string_abs_pos = 4 + table_size + vtable_size + str_info[:start_in_string_section]
               # uoffset from field position in final buffer
               field_abs_pos = 4 + current_pos
@@ -146,10 +150,12 @@ module Unibuf
 
           vtable_bytes.concat([vtable_size].pack("S<").bytes)
           vtable_bytes.concat([object_size].pack("S<").bytes)
-          field_offsets.each { |off| vtable_bytes.concat([off].pack("S<").bytes) }
+          field_offsets.each do |off|
+            vtable_bytes.concat([off].pack("S<").bytes)
+          end
 
           # Patch vtable offset
-          vtable_offset = -(object_size)
+          vtable_offset = -object_size
           table_bytes[0..3] = [vtable_offset].pack("l<").bytes
 
           # Return table + vtable + strings

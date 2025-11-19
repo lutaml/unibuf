@@ -89,7 +89,7 @@ RSpec.describe Unibuf::Parsers::Flatbuffers::BinaryParser do
       parser.instance_variable_set(:@io, io)
 
       result = parser.send(:read_scalar, 0, "bool")
-      expect(result).to eq(true)
+      expect(result).to be(true)
     end
 
     it "reads bool as false" do
@@ -99,7 +99,7 @@ RSpec.describe Unibuf::Parsers::Flatbuffers::BinaryParser do
       parser.instance_variable_set(:@io, io)
 
       result = parser.send(:read_scalar, 0, "bool")
-      expect(result).to eq(false)
+      expect(result).to be(false)
     end
   end
 

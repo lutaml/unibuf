@@ -50,7 +50,7 @@ module Unibuf
       end
 
       def serialize_fields(message, msg_def)
-        output = String.new.force_encoding(Encoding::BINARY)
+        output = (+"").force_encoding(Encoding::BINARY)
 
         message.fields.each do |field|
           # Find field definition
@@ -175,7 +175,10 @@ module Unibuf
           # Embedded message
           nested_msg = field.as_message
           nested_msg_def = schema.find_message(field_def.type)
-          raise SerializationError, "Unknown message type: #{field_def.type}" unless nested_msg_def
+          unless nested_msg_def
+            raise SerializationError,
+                  "Unknown message type: #{field_def.type}"
+          end
 
           nested_bytes = serialize_fields(nested_msg, nested_msg_def)
           encode_varint(nested_bytes.bytesize) + nested_bytes
@@ -188,12 +191,12 @@ module Unibuf
       def encode_varint(value)
         return "\x00".b if value.zero?
 
-        output = String.new.force_encoding(Encoding::BINARY)
+        output = (+"").force_encoding(Encoding::BINARY)
 
-        while value > 0
+        while value.positive?
           byte = value & 0x7F
           value >>= 7
-          byte |= 0x80 if value > 0
+          byte |= 0x80 if value.positive?
           output << byte.chr
         end
 

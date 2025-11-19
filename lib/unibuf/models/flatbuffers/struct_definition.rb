@@ -39,7 +39,11 @@ module Unibuf
 
         def validate!
           raise ValidationError, "Struct name required" unless name
-          raise ValidationError, "Struct must have at least one field" if fields.empty?
+
+          if fields.empty?
+            raise ValidationError,
+                  "Struct must have at least one field"
+          end
 
           # Structs cannot contain vectors or other non-scalar types
           fields.each do |field|
