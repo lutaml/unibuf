@@ -68,7 +68,8 @@ module Unibuf
       autoload :StructDefinition, "unibuf/models/capnproto/struct_definition"
       autoload :FieldDefinition, "unibuf/models/capnproto/field_definition"
       autoload :EnumDefinition, "unibuf/models/capnproto/enum_definition"
-      autoload :InterfaceDefinition, "unibuf/models/capnproto/interface_definition"
+      autoload :InterfaceDefinition,
+               "unibuf/models/capnproto/interface_definition"
       autoload :MethodDefinition, "unibuf/models/capnproto/method_definition"
       autoload :UnionDefinition, "unibuf/models/capnproto/union_definition"
     end
