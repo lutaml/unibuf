@@ -18,26 +18,9 @@ end
 
 require "unibuf"
 
-# Load all models and parsers
-require_relative "../lib/unibuf/models/message"
-require_relative "../lib/unibuf/models/field"
-require_relative "../lib/unibuf/models/schema"
-require_relative "../lib/unibuf/models/message_definition"
-require_relative "../lib/unibuf/models/field_definition"
-require_relative "../lib/unibuf/models/enum_definition"
-require_relative "../lib/unibuf/models/values/base_value"
-require_relative "../lib/unibuf/models/values/scalar_value"
-require_relative "../lib/unibuf/models/values/message_value"
-require_relative "../lib/unibuf/models/values/list_value"
-require_relative "../lib/unibuf/models/values/map_value"
-require_relative "../lib/unibuf/parsers/textproto/grammar"
-require_relative "../lib/unibuf/parsers/textproto/processor"
-require_relative "../lib/unibuf/parsers/textproto/parser"
-require_relative "../lib/unibuf/parsers/proto3/grammar"
-require_relative "../lib/unibuf/parsers/proto3/processor"
-require_relative "../lib/unibuf/parsers/binary/wire_format_parser"
-require_relative "../lib/unibuf/validators/type_validator"
-require_relative "../lib/unibuf/validators/schema_validator"
+# With autoload, explicit requires are not needed.
+# Constants are loaded automatically when first referenced.
+# This ensures the autoload behavior is tested.
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure

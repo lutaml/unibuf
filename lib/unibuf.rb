@@ -8,35 +8,90 @@ module Unibuf
   module Parsers
     # Text format parser
     module Textproto
+      autoload :Grammar, "unibuf/parsers/textproto/grammar"
+      autoload :Processor, "unibuf/parsers/textproto/processor"
+      autoload :Parser, "unibuf/parsers/textproto/parser"
     end
 
     # Proto3 schema parser
     module Proto3
+      autoload :Grammar, "unibuf/parsers/proto3/grammar"
+      autoload :Processor, "unibuf/parsers/proto3/processor"
     end
 
     # Binary Protocol Buffer parser
     module Binary
+      autoload :WireFormatParser, "unibuf/parsers/binary/wire_format_parser"
     end
 
     # FlatBuffers schema parser
     module Flatbuffers
+      autoload :Grammar, "unibuf/parsers/flatbuffers/grammar"
+      autoload :Processor, "unibuf/parsers/flatbuffers/processor"
+      autoload :BinaryParser, "unibuf/parsers/flatbuffers/binary_parser"
     end
 
     # Cap'n Proto schema parser
     module Capnproto
+      autoload :Grammar, "unibuf/parsers/capnproto/grammar"
+      autoload :Processor, "unibuf/parsers/capnproto/processor"
+      autoload :BinaryParser, "unibuf/parsers/capnproto/binary_parser"
+      autoload :SegmentReader, "unibuf/parsers/capnproto/segment_reader"
+      autoload :PointerDecoder, "unibuf/parsers/capnproto/pointer_decoder"
+      autoload :StructReader, "unibuf/parsers/capnproto/struct_reader"
+      autoload :ListReader, "unibuf/parsers/capnproto/list_reader"
     end
   end
 
   # Module for all models
   module Models
+    autoload :Message, "unibuf/models/message"
+    autoload :Field, "unibuf/models/field"
+    autoload :Schema, "unibuf/models/schema"
+    autoload :MessageDefinition, "unibuf/models/message_definition"
+    autoload :FieldDefinition, "unibuf/models/field_definition"
+    autoload :EnumDefinition, "unibuf/models/enum_definition"
+
+    # FlatBuffers models
+    module Flatbuffers
+      autoload :Schema, "unibuf/models/flatbuffers/schema"
+      autoload :TableDefinition, "unibuf/models/flatbuffers/table_definition"
+      autoload :StructDefinition, "unibuf/models/flatbuffers/struct_definition"
+      autoload :FieldDefinition, "unibuf/models/flatbuffers/field_definition"
+      autoload :EnumDefinition, "unibuf/models/flatbuffers/enum_definition"
+      autoload :UnionDefinition, "unibuf/models/flatbuffers/union_definition"
+    end
+
+    # Cap'n Proto models
+    module Capnproto
+      autoload :Schema, "unibuf/models/capnproto/schema"
+      autoload :StructDefinition, "unibuf/models/capnproto/struct_definition"
+      autoload :FieldDefinition, "unibuf/models/capnproto/field_definition"
+      autoload :EnumDefinition, "unibuf/models/capnproto/enum_definition"
+      autoload :InterfaceDefinition, "unibuf/models/capnproto/interface_definition"
+      autoload :MethodDefinition, "unibuf/models/capnproto/method_definition"
+      autoload :UnionDefinition, "unibuf/models/capnproto/union_definition"
+    end
+
+    # Value classes (nested under Values module)
+    module Values
+      autoload :BaseValue, "unibuf/models/values/base_value"
+      autoload :ScalarValue, "unibuf/models/values/scalar_value"
+      autoload :ListValue, "unibuf/models/values/list_value"
+      autoload :MapValue, "unibuf/models/values/map_value"
+      autoload :MessageValue, "unibuf/models/values/message_value"
+    end
   end
 
   # Module for validators
   module Validators
+    autoload :TypeValidator, "unibuf/validators/type_validator"
+    autoload :SchemaValidator, "unibuf/validators/schema_validator"
   end
 
   # Module for serializers
   module Serializers
+    autoload :BinarySerializer, "unibuf/serializers/binary_serializer"
   end
 
   class << self
@@ -46,7 +101,6 @@ module Unibuf
     # @param content [String] Text format content
     # @return [Models::Message] Parsed message
     def parse_textproto(content)
-      require_relative "unibuf/parsers/textproto/parser"
       Parsers::Textproto::Parser.new.parse(content)
     end
     alias parse_text parse_textproto
@@ -56,7 +110,6 @@ module Unibuf
     # @param path [String] Path to text format file
     # @return [Models::Message] Parsed message
     def parse_textproto_file(path)
-      require_relative "unibuf/parsers/textproto/parser"
       Parsers::Textproto::Parser.new.parse_file(path)
     end
     alias parse_text_file parse_textproto_file
@@ -70,7 +123,6 @@ module Unibuf
     def parse_binary(content, schema:)
       raise ArgumentError, "Schema required for binary parsing" unless schema
 
-      require_relative "unibuf/parsers/binary/wire_format_parser"
       Parsers::Binary::WireFormatParser.new(schema).parse(content)
     end
     alias parse_binpb parse_binary
@@ -90,9 +142,6 @@ module Unibuf
     # @param path [String] Path to .proto file
     # @return [Models::Schema] Schema object
     def parse_schema(path)
-      require_relative "unibuf/parsers/proto3/grammar"
-      require_relative "unibuf/parsers/proto3/processor"
-
       grammar = Parsers::Proto3::Grammar.new
       content = File.read(path)
       ast = grammar.parse(content)
@@ -107,9 +156,6 @@ module Unibuf
     # @param path [String] Path to .fbs file
     # @return [Models::Flatbuffers::Schema] FlatBuffers schema
     def parse_flatbuffers_schema(path)
-      require_relative "unibuf/parsers/flatbuffers/grammar"
-      require_relative "unibuf/parsers/flatbuffers/processor"
-
       grammar = Parsers::Flatbuffers::Grammar.new
       content = File.read(path)
       ast = grammar.parse(content)
@@ -127,7 +173,6 @@ module Unibuf
               "Schema required for FlatBuffers parsing"
       end
 
-      require_relative "unibuf/parsers/flatbuffers/binary_parser"
       Parsers::Flatbuffers::BinaryParser.new(schema).parse(content)
     end
 
@@ -137,9 +182,6 @@ module Unibuf
     # @param path [String] Path to .capnp file
     # @return [Models::Capnproto::Schema] Cap'n Proto schema
     def parse_capnproto_schema(path)
-      require_relative "unibuf/parsers/capnproto/grammar"
-      require_relative "unibuf/parsers/capnproto/processor"
-
       grammar = Parsers::Capnproto::Grammar.new
       content = File.read(path)
       ast = grammar.parse(content)

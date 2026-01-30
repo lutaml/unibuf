@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
-require_relative "segment_reader"
-require_relative "pointer_decoder"
-
 module Unibuf
   module Parsers
     module Capnproto
+      autoload :SegmentReader, "unibuf/parsers/capnproto/segment_reader"
+      autoload :PointerDecoder, "unibuf/parsers/capnproto/pointer_decoder"
+
       # Reader for Cap'n Proto struct data
       # Structs have two sections: data (inline primitives) and pointers
       class StructReader

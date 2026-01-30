@@ -1,12 +1,11 @@
 # frozen_string_literal: true
 
-require_relative "grammar"
-require_relative "processor"
-require_relative "../../models/message"
-
 module Unibuf
   module Parsers
     module Textproto
+      autoload :Grammar, "unibuf/parsers/textproto/grammar"
+      autoload :Processor, "unibuf/parsers/textproto/processor"
+
       # High-level parser for Protocol Buffers text format
       # Combines Grammar (Parslet) and Processor (manual transformation)
       class Parser

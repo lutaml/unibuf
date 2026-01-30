@@ -1,10 +1,5 @@
 # frozen_string_literal: true
 
-require_relative "../../models/schema"
-require_relative "../../models/message_definition"
-require_relative "../../models/field_definition"
-require_relative "../../models/enum_definition"
-
 module Unibuf
   module Parsers
     module Proto3

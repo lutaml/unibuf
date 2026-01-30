@@ -1,12 +1,5 @@
 # frozen_string_literal: true
 
-require_relative "../../models/flatbuffers/schema"
-require_relative "../../models/flatbuffers/table_definition"
-require_relative "../../models/flatbuffers/struct_definition"
-require_relative "../../models/flatbuffers/field_definition"
-require_relative "../../models/flatbuffers/enum_definition"
-require_relative "../../models/flatbuffers/union_definition"
-
 module Unibuf
   module Parsers
     module Flatbuffers
@@ -14,7 +7,7 @@ module Unibuf
       class Processor
         class << self
           def process(ast)
-            return Models::Flatbuffers::Schema.new unless ast
+            return Schema.new unless ast
 
             elements = Array(ast)
 
@@ -31,7 +24,7 @@ module Unibuf
               attributes: extract_attributes(elements),
             }
 
-            Models::Flatbuffers::Schema.new(attributes)
+            Schema.new(attributes)
           end
 
           private
@@ -117,7 +110,7 @@ module Unibuf
 
             fields = extract_table_fields(body)
 
-            Models::Flatbuffers::TableDefinition.new(
+            TableDefinition.new(
               name: name,
               fields: fields,
               metadata: metadata,
@@ -131,7 +124,7 @@ module Unibuf
 
             fields = extract_struct_fields(body)
 
-            Models::Flatbuffers::StructDefinition.new(
+            StructDefinition.new(
               name: name,
               fields: fields,
               metadata: metadata,
@@ -164,7 +157,7 @@ module Unibuf
             default_value = process_default_value(field_data[:default])
             metadata = process_metadata(field_data[:metadata])
 
-            Models::Flatbuffers::FieldDefinition.new(
+            FieldDefinition.new(
               name: name,
               type: type,
               default_value: default_value,
@@ -267,7 +260,7 @@ module Unibuf
               last_value = val_num
             end
 
-            Models::Flatbuffers::EnumDefinition.new(
+            EnumDefinition.new(
               name: name,
               type: type,
               values: values,
@@ -286,7 +279,7 @@ module Unibuf
               types << type_el[:type][:type][:identifier].to_s
             end
 
-            Models::Flatbuffers::UnionDefinition.new(
+            UnionDefinition.new(
               name: name,
               types: types,
               metadata: metadata,

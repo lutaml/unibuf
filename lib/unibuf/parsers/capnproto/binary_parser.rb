@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
-require_relative "segment_reader"
-require_relative "pointer_decoder"
-require_relative "struct_reader"
-require_relative "list_reader"
-
 module Unibuf
   module Parsers
     module Capnproto
+      autoload :SegmentReader, "unibuf/parsers/capnproto/segment_reader"
+      autoload :PointerDecoder, "unibuf/parsers/capnproto/pointer_decoder"
+      autoload :StructReader, "unibuf/parsers/capnproto/struct_reader"
+      autoload :ListReader, "unibuf/parsers/capnproto/list_reader"
+
       # Parser for Cap'n Proto binary format
       # Coordinates segment reading, pointer following, and data extraction
       class BinaryParser
