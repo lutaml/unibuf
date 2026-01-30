@@ -1,13 +1,5 @@
 # frozen_string_literal: true
 
-require_relative "../../models/capnproto/schema"
-require_relative "../../models/capnproto/struct_definition"
-require_relative "../../models/capnproto/field_definition"
-require_relative "../../models/capnproto/enum_definition"
-require_relative "../../models/capnproto/interface_definition"
-require_relative "../../models/capnproto/method_definition"
-require_relative "../../models/capnproto/union_definition"
-
 module Unibuf
   module Parsers
     module Capnproto

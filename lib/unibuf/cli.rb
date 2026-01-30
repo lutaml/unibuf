@@ -1,12 +1,15 @@
 # frozen_string_literal: true
 
 require "thor"
-require_relative "commands/parse"
-require_relative "commands/validate"
-require_relative "commands/convert"
-require_relative "commands/schema"
 
 module Unibuf
+  module Commands
+    autoload :Parse, "unibuf/commands/parse"
+    autoload :Validate, "unibuf/commands/validate"
+    autoload :Convert, "unibuf/commands/convert"
+    autoload :Schema, "unibuf/commands/schema"
+  end
+
   # Command-line interface using Thor
   class Cli < Thor
     # Exit with error code on command failures
@@ -42,7 +45,7 @@ module Unibuf
     method_option :verbose, type: :boolean,
                             desc: "Enable verbose output"
     def parse(file)
-      Unibuf::Commands::Parse.new(options).run(file)
+      Commands::Parse.new(options).run(file)
     end
 
     desc "validate FILE --schema SCHEMA",
@@ -67,7 +70,7 @@ module Unibuf
     method_option :verbose, type: :boolean,
                             desc: "Enable verbose output"
     def validate(file)
-      Unibuf::Commands::Validate.new(options).run(file)
+      Commands::Validate.new(options).run(file)
     end
 
     desc "convert FILE --schema SCHEMA",
@@ -98,7 +101,7 @@ module Unibuf
     method_option :verbose, type: :boolean,
                             desc: "Enable verbose output"
     def convert(file)
-      Unibuf::Commands::Convert.new(options).run(file)
+      Commands::Convert.new(options).run(file)
     end
 
     desc "schema FILE", "Parse and display Proto3 or FlatBuffers schema"
@@ -117,7 +120,7 @@ module Unibuf
     method_option :verbose, type: :boolean,
                             desc: "Enable verbose output"
     def schema(file)
-      Unibuf::Commands::Schema.new(options).run(file)
+      Commands::Schema.new(options).run(file)
     end
 
     desc "version", "Show Unibuf version"

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require_relative "base_value"
-
 module Unibuf
   module Models
     module Values

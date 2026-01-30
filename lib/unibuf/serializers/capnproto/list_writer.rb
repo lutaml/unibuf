@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
-require_relative "segment_builder"
-require_relative "pointer_encoder"
-
 module Unibuf
   module Serializers
     module Capnproto
+      autoload :SegmentBuilder, "unibuf/serializers/capnproto/segment_builder"
+      autoload :PointerEncoder, "unibuf/serializers/capnproto/pointer_encoder"
+
       # Writer for Cap'n Proto list data
       # Handles lists of primitives, pointers, and structs
       class ListWriter

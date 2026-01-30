@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require_relative "field"
-
 module Unibuf
   module Models
+    autoload :Field, "unibuf/models/field"
+
     # Represents a Protocol Buffer message
     # Rich domain model with comprehensive behavior
     class Message
@@ -187,7 +187,6 @@ module Unibuf
       # @param message_type [String] The message type name from schema
       # @return [String] Binary data
       def to_binary(schema:, message_type: nil)
-        require_relative "../serializers/binary_serializer"
         serializer = Serializers::BinarySerializer.new(schema)
         serializer.serialize(self, message_type: message_type)
       end

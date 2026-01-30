@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
-require_relative "segment_builder"
-require_relative "pointer_encoder"
-require_relative "struct_writer"
-require_relative "list_writer"
-
 module Unibuf
   module Serializers
     module Capnproto
+      autoload :SegmentBuilder, "unibuf/serializers/capnproto/segment_builder"
+      autoload :PointerEncoder, "unibuf/serializers/capnproto/pointer_encoder"
+      autoload :StructWriter, "unibuf/serializers/capnproto/struct_writer"
+      autoload :ListWriter, "unibuf/serializers/capnproto/list_writer"
+
       # Serializer for Cap'n Proto binary format
       # Coordinates segment building, pointer encoding, and data writing
       class BinarySerializer

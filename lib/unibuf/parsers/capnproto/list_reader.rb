@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-require_relative "segment_reader"
-require_relative "pointer_decoder"
-require_relative "struct_reader"
-
 module Unibuf
   module Parsers
     module Capnproto
+      autoload :SegmentReader, "unibuf/parsers/capnproto/segment_reader"
+      autoload :PointerDecoder, "unibuf/parsers/capnproto/pointer_decoder"
+      autoload :StructReader, "unibuf/parsers/capnproto/struct_reader"
+
       # Reader for Cap'n Proto list data
       # Lists can contain primitives, pointers, or structs
       class ListReader
