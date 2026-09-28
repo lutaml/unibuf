@@ -163,9 +163,9 @@ module Unibuf
         }
       end
 
-      def to_json(*args)
+      def to_json(*)
         require "json"
-        to_h.to_json(*args)
+        to_h.to_json(*)
       end
 
       def to_yaml

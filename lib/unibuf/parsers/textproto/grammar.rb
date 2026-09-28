@@ -53,7 +53,7 @@ module Unibuf
 
         # Numeric literals
         rule(:sign) { match["+-"] }
-        rule(:dec_lit) { (str("0") | (match["1-9"] >> dec.repeat)) }
+        rule(:dec_lit) { str("0") | (match["1-9"] >> dec.repeat) }
         rule(:exp) { match["Ee"] >> sign.maybe >> dec.repeat(1) }
         rule(:float_lit) do
           (str(".") >> dec.repeat(1) >> exp.maybe) |
