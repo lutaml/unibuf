@@ -60,7 +60,7 @@ module Unibuf
           end
 
           # Process a value (polymorphic)
-          # rubocop:disable Metrics/MethodLength
+          # rubocop:disable-next Metrics/MethodLength
           def process_value(value)
             return nil unless value
             return value.to_s if value.is_a?(String)
@@ -112,7 +112,6 @@ module Unibuf
               value.to_s
             end
           end
-          # rubocop:enable Metrics/MethodLength
 
           # Extract and unescape a string token
           def extract_and_unescape_string(str_token)

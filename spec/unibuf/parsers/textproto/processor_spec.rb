@@ -208,7 +208,7 @@ RSpec.describe Unibuf::Parsers::Textproto::Processor do
         expect(result["fields"].first["value"]).to eq(-3.14)
       end
 
-      # rubocop:disable RSpec/ExampleLength
+      # rubocop:disable-next RSpec/ExampleLength
       it "processes negative numbers in map field values" do
         ast = [
           {
@@ -238,7 +238,6 @@ RSpec.describe Unibuf::Parsers::Textproto::Processor do
         value_field = nested["fields"].find { |f| f["name"] == "value" }
         expect(value_field["value"]).to eq(-203.0)
       end
-      # rubocop:enable RSpec/ExampleLength
 
       it "processes negative numbers in lists" do
         ast = [
