@@ -9,6 +9,10 @@ inherit_from:
 
 AllCops:
   NewCops: enable
+  # Align with the gemspec floor (>= 3.1.0): the oss-guides inherited
+  # config targets 3.4, and Bundler/GemspecRubyVersionWarnings fails
+  # CI on the mismatch.
+  TargetRubyVersion: 3.1
 
 plugins:
   - rubocop-rake
