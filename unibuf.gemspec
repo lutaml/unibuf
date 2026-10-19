@@ -36,7 +36,7 @@ Gem::Specification.new do |spec|
 
   # Runtime dependencies
   spec.add_dependency "bindata", "~> 2.5"
-  spec.add_dependency "lutaml-model", "~> 0.7"
+  spec.add_dependency "lutaml-model", "~> 0.8.114"
   spec.add_dependency "parslet", "~> 2.0"
   spec.add_dependency "thor", "~> 1.4"
 end
