@@ -5,7 +5,7 @@ require_relative "lib/unibuf/version"
 Gem::Specification.new do |spec|
   spec.name = "unibuf"
   spec.version = Unibuf::VERSION
-  spec.authors = ["Ronald Tse"]
+  spec.authors       = ["Ribose Inc."]
   spec.email = ["ronald.tse@ribose.com"]
 
   spec.summary = "Universal Protocol Buffer & FlatBuffer Parser"
